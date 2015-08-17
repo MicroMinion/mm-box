@@ -204,7 +204,7 @@ function initKadDht(opts) {
   });
   dht.address = address;
   dht.port = port;
-  // if no seeds, then done (this is a bootstrap node)
+  // if no seeds, then we're done (this is a bootstrap node)
   if (opts.seeds.length == 0) {
     console.log('No seeds specified -- this is a bootstrap node');
     deferred.resolve(dht);
