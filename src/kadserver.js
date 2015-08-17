@@ -36,8 +36,11 @@ KadServer.prototype.activate = function() {
     return getPublicAddress(self.opts);
   })
   .then(function(ip) {
+    if (ip) {
+      // store IP address
+      self.opts.nat.address = ip;
+    };
     // launch dht instance
-    self.opts.address = ip;
     return initKadDht(self.opts)
   })
   .then(function(dht) {
@@ -49,7 +52,7 @@ KadServer.prototype.activate = function() {
     self.emit('error', error);
   })
   .done(function() {
-    console.log('Kad server running at ' + self.opts.address + ':' + self.opts.port);
+    console.log('Kad server running at ' + self.dht.address + ':' + self.dht.port);
     if (self.dht.connected) {
       self.ready = true;
       self.emit('ready');
@@ -139,19 +142,19 @@ function createStorageFolder(opts) {
 
 function mapPrivateToPublicPort(opts) {
   var deferred = Q.defer();
-  if (opts.public_port == undefined) {
-    console.log('No public port defined, so no portmapping requested');
+  if (!opts.nat) {
+    console.log('Node is not located behind NAT device -- no demand for portmapping');
     deferred.resolve();
   }
   else {
-    console.log('Mapping private port ' + opts.port + ' to public port ' + opts.public_port);
+    console.log('Mapping private port ' + opts.port + ' to public port ' + opts.nat.port);
     nat.portMapping({
-      public: opts.public_port,
+      public: opts.nat.port,
       private: opts.port,
       ttl: 0 // indefinite lease
     }, function(error) {
       if (error) {
-        console.error('Could not map local port ' + opts.port + ' to public port ' + opts.public_port + '. ' + error);
+        console.error('Could not map local port ' + opts.port + ' to public port ' + opts.nat.port + '. ' + error);
         deferred.reject(error);
       }
       else {
@@ -164,9 +167,13 @@ function mapPrivateToPublicPort(opts) {
 
 function getPublicAddress(opts) {
   var deferred = Q.defer();
-  if (opts.address) {
+  if (!opts.nat) {
+    console.log('Node is not located behind NAT device -- no demand to determine public IP address');
+    deferred.resolve();
+  }
+  else if (opts.nat.address) {
     console.log('Public address is already set');
-    deferred.resolve(opts.address);
+    deferred.resolve(opts.nat.address);
   }
   else {
     console.log('Retrieving public address');
@@ -184,15 +191,19 @@ function getPublicAddress(opts) {
 };
 
 function initKadDht(opts) {
-  console.log('Creating dht listening at ' + opts.address + ':' + opts.port);
+  var port = opts.nat? opts.nat.port: false || opts.port;
+  var address = opts.nat? opts.nat.address: false || opts.address;
+  console.log('Creating dht listening at ' + address + ':' + port);
   var deferred = Q.defer();
   // create dht
   var dht = kademlia({
-    address: opts.address,
-    port: opts.port,
+    address: address,
+    port: port,
     seeds: opts.seeds,
     storage: levelup(opts.storage)
   });
+  dht.address = address;
+  dht.port = port;
   // if no seeds, then done (this is a bootstrap node)
   if (opts.seeds.length == 0) {
     console.log('No seeds specified -- this is a bootstrap node');

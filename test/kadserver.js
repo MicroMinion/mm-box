@@ -4,7 +4,7 @@ var KadServer = require('../src/kadserver');
 
 test('launch localhost bootstrap server', function (t) {
   var opts = {
-    address: '127.0.0.1',
+    address: '0.0.0.0',
     port: 65535,
     seeds: [],
     storage: './test-db'
@@ -14,7 +14,7 @@ test('launch localhost bootstrap server', function (t) {
     t.fail('Ready event should not be fired since there are no seeds specified.');
   });
   server.on('no peers', function() {
-    t.ok(true);
+    t.pass('bootstrap server running');
     // rm -rf ./test-db
     rimraf(opts.storage, function() {
       t.end();
@@ -24,86 +24,148 @@ test('launch localhost bootstrap server', function (t) {
 });
 
 test('launch local overlay network', function (t) {
-  // bootstrap node
-  var bootOpts = {
-    address: '127.0.0.1',
-    port: 65535,
+  // node 1 -- bootstrap node
+  var node1opts = {
+    address: '0.0.0.0',
+    port: 65534,
     seeds: [],
     storage: './test-db-1'
   };
-  // peer 1
-  var peer1Opts = {
-    address: '127.0.0.1',
-    port: 65534,
-    seeds: [
-      {
-        address: '127.0.0.1',
-        port: 65535
-      }
-    ],
-    storage: './test-db-2'
-  };
-  // peer 2
-  var peer2Opts = {
-    address: '127.0.0.1',
+  // node 2
+  var node2opts = {
+    address: '0.0.0.0',
     port: 65533,
     seeds: [
-      {
-        address: '127.0.0.1',
-        port: 65535
-      },
       {
         address: '127.0.0.1',
         port: 65534
       }
     ],
+    storage: './test-db-2'
+  };
+  // node 3
+  var node3opts = {
+    address: '0.0.0.0',
+    port: 65532,
+    seeds: [
+      {
+        address: '127.0.0.1',
+        port: 65534
+      },
+      {
+        address: '127.0.0.1',
+        port: 65533
+      }
+    ],
     storage: './test-db-3'
   };
-  // launch boot node
-  var bootServer = KadServer(bootOpts);
-  bootServer.on('ready', function () {
+  // cleanup created storage folders
+  var cleanUpStorageFolders = function(onComplete) {
+    rimraf(node1opts.storage, function() {
+      rimraf(node2opts.storage, function() {
+        rimraf(node3opts.storage, function() {
+          onComplete();
+        });
+      });
+    });
+  };
+  // launch node 1
+  var node1 = KadServer(node1opts);
+  node1.on('ready', function () {
     t.fail('Ready event should not be fired since there are no seeds specified.');
   });
-  bootServer.on('no peers', function() {
-    // launch peer 1
-    var peer1 = KadServer(peer1Opts);
-    peer1.on('no peers', function() {
-      t.fail('Node 1 could not connect to peers ' + peer1Opts.seeds);
+  node1.on('no peers', function() {
+    t.pass('Bootstrap server running');
+    // launch node 2
+    var node2 = KadServer(node2opts);
+    node2.on('no peers', function() {
+      t.fail('Node 2 could not connect to peer ' + JSON.stringify(node2opts.seeds));
     });
-    peer1.on('ready', function() {
-      t.ok(true);
-      // launch peer 2
-      var peer2 = KadServer(peer2Opts);
-      peer2.on('no peers', function() {
-        t.fail('Node 2 could not connect to peers ' + peer2Opts.seeds);
+    node2.on('ready', function() {
+      t.pass('Node 2 is connected to peer ' + JSON.stringify(node2opts.seeds));
+      // launch node 3
+      var node3 = KadServer(node3opts);
+      node3.on('no peers', function() {
+        t.fail('Node 3 could not connect to peers ' + JSON.stringify(node3opts.seeds));
       });
-      peer2.on('ready', function() {
-        t.ok(true);
-        t.end();
+      node3.on('ready', function() {
+        t.pass('Node 3 is connected to peers ' + JSON.stringify(node3opts.seeds));
+        cleanUpStorageFolders(function() {
+          t.end();
+        });
       });
-      peer2.activate();
+      node3.activate();
     });
-    peer1.activate();
+    node2.activate();
   });
-  bootServer.activate();
+  node1.activate();
 });
 
-test('launch NATed bootstrap server', function (t) {
+test('launch NATed bootstrap server + open NAT port through UPnP', function (t) {
+  var opts = {
+    address: '0.0.0.0',
+    port: 65531,
+    nat: {
+      address: '94.227.154.171',
+      port: 65530
+    },
+    seeds: [],
+    storage: './test-db-4'
+  };
+  var server = KadServer(opts);
+  server.on('ready', function () {
+    t.fail('Ready event should not be fired since there are no seeds specified.');
+  });
+  server.on('no peers', function() {
+    t.pass('bootstrap server running');
+    // rm -rf ./test-db
+    rimraf(opts.storage, function() {
+      t.end();
+    });
+  });
+  server.activate();
+});
 
+test('launch NATed bootstrap server + retrieve public address', function (t) {
+  var opts = {
+    address: '0.0.0.0',
+    port: 65530,
+    nat: {
+      port: 65529
+    },
+    seeds: [],
+    storage: './test-db-5'
+  };
+  var server = KadServer(opts);
+  server.on('ready', function () {
+    t.fail('Ready event should not be fired since there are no seeds specified.');
+  });
+  server.on('no peers', function() {
+    t.pass('bootstrap server running');
+    // rm -rf ./test-db
+    rimraf(opts.storage, function() {
+      t.end();
+    });
+  });
+  server.activate();
 });
 
 test('launch NATed overlay network', function (t) {
-
+  t.pass();
+  t.end();
 });
 
 test('test basic write operation', function (t) {
-
+  t.pass();
+  t.end();
 });
 
 test('test basic read operation', function (t) {
-
+  t.pass();
+  t.end();
 });
 
 test('test ttl expiration', function (t) {
-
+  t.pass();
+  t.end();
 });
