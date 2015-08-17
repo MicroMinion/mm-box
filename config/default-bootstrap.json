@@ -1,0 +1,6 @@
+{
+  "public_port": 65535,
+  "port": 65535,
+  "seeds": [],
+  "storage": "./db"
+}

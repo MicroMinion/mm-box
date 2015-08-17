@@ -1,0 +1,28 @@
+{
+  "name": "kad-server",
+  "version": "0.0.1",
+  "description": "Kad server to faciliate flunky directory server",
+  "main": "index.js",
+  "keywords": [
+    "directory",
+    "key",
+    "value",
+    "kademlia",
+    "P2P"
+  ],
+  "author": "Nico Janssens <nico.b.janssens@gmail.com>",
+  "license": "TBD",
+  "dependencies": {
+    "config": "",
+    "inherits": "",
+    "kad": "",
+    "levelup": "",
+    "mkdirp": "",
+    "nat-upnp": "",
+    "q": ""
+  },
+  "devDependencies": {
+    "rimraf": "",
+    "tape": ""
+  }
+}

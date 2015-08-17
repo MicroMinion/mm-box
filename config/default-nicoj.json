@@ -1,0 +1,7 @@
+{
+  "address": "94.227.154.171",
+  "public_port": 65535,
+  "port": 65535,
+  "seeds": [],
+  "storage": "./db"
+}
