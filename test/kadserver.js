@@ -240,6 +240,8 @@ test('launch NATed overlay network', function (t) {
 });
 
 test('test basic write and read operation', function (t) {
+  var key = 'ping'
+  var value = 'pong'
   // node 1 -- bootstrap node
   var node1opts = {
     address: '0.0.0.0',
@@ -325,7 +327,7 @@ test('test basic write and read operation', function (t) {
       });
       node3.on('ready', function() {
         t.pass('Node 3 is connected to peers ' + JSON.stringify(node3opts.seeds));
-        testWriteRead(node1, key, value, function() {
+//        testWriteRead(node1, key, value, function() {
           testWriteRead(node2, key, value, function() {
             testWriteRead(node3, key, value, function() {
               cleanUpStorageFolders(function() {
@@ -333,7 +335,7 @@ test('test basic write and read operation', function (t) {
               });
             });
           });
-        });
+//        });
       });
       node3.activate();
     });
@@ -343,6 +345,8 @@ test('test basic write and read operation', function (t) {
 });
 
 test('test basic write and read operation in NAT setup', function (t) {
+  var key = 'ping'
+  var value = 'pong'
   // node 1 -- bootstrap node
   var node1opts = {
     address: '0.0.0.0',
@@ -428,7 +432,7 @@ test('test basic write and read operation in NAT setup', function (t) {
       });
       node3.on('ready', function() {
         t.pass('Node 3 is connected to peers ' + JSON.stringify(node3opts.seeds));
-        testWriteRead(node1, key, value, function() {
+        //testWriteRead(node1, key, value, function() {
           testWriteRead(node2, key, value, function() {
             testWriteRead(node3, key, value, function() {
               cleanUpStorageFolders(function() {
@@ -436,7 +440,7 @@ test('test basic write and read operation in NAT setup', function (t) {
               });
             });
           });
-        });
+        //});
       });
       node3.activate();
     });
