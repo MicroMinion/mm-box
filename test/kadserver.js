@@ -239,17 +239,213 @@ test('launch NATed overlay network', function (t) {
   node1.activate();
 });
 
-test('test basic write operation', function (t) {
-  t.pass();
-  t.end();
+test('test basic write and read operation', function (t) {
+  // node 1 -- bootstrap node
+  var node1opts = {
+    address: '0.0.0.0',
+    port: 65525,
+    seeds: [],
+    storage: './test-db-9'
+  };
+  // node 2
+  var node2opts = {
+    address: '0.0.0.0',
+    port: 65524,
+    seeds: [
+      {
+        address: '127.0.0.1',
+        port: 65525
+      }
+    ],
+    storage: './test-db-10'
+  };
+  // node 3
+  var node3opts = {
+    address: '0.0.0.0',
+    port: 65523,
+    seeds: [
+      {
+        address: '127.0.0.1',
+        port: 65525
+      },
+      {
+        address: '127.0.0.1',
+        port: 65524
+      }
+    ],
+    storage: './test-db-11'
+  };
+  // test write-read operations
+  var testWriteRead = function (node, key, value, onSuccess) {
+    node.put(key, value)
+    .then(function() {
+      t.pass('Stored KV [' + key + ',' + value + ']');
+      return node.get(key);
+    })
+    .then(function(storedValue){
+      if (storedValue != value) {
+        t.fail('Expected to get value ' + value + ', instead retrieved ' + storedValue);
+      } else {
+        t.pass('Retrieved value ' + value + ' for key ' + key);
+        onSuccess();
+      }
+    })
+    .catch(function (error) {
+      t.fail('Unable to succesfully write and read to/from the DHT');
+    });
+  }
+  // cleanup created storage folders
+  var cleanUpStorageFolders = function(onComplete) {
+    rimraf(node1opts.storage, function() {
+      rimraf(node2opts.storage, function() {
+        rimraf(node3opts.storage, function() {
+          onComplete();
+        });
+      });
+    });
+  };
+  // launch node 1
+  var node1 = KadServer(node1opts);
+  node1.on('ready', function () {
+    t.fail('Ready event should not be fired since there are no seeds specified.');
+  });
+  node1.on('no peers', function() {
+    t.pass('Bootstrap server running');
+    // launch node 2
+    var node2 = KadServer(node2opts);
+    node2.on('no peers', function() {
+      t.fail('Node 2 could not connect to peer ' + JSON.stringify(node2opts.seeds));
+    });
+    node2.on('ready', function() {
+      t.pass('Node 2 is connected to peer ' + JSON.stringify(node2opts.seeds));
+      // launch node 3
+      var node3 = KadServer(node3opts);
+      node3.on('no peers', function() {
+        t.fail('Node 3 could not connect to peers ' + JSON.stringify(node3opts.seeds));
+      });
+      node3.on('ready', function() {
+        t.pass('Node 3 is connected to peers ' + JSON.stringify(node3opts.seeds));
+        testWriteRead(node1, key, value, function() {
+          testWriteRead(node2, key, value, function() {
+            testWriteRead(node3, key, value, function() {
+              cleanUpStorageFolders(function() {
+                t.end();
+              });
+            });
+          });
+        });
+      });
+      node3.activate();
+    });
+    node2.activate();
+  });
+  node1.activate();
 });
 
-test('test basic read operation', function (t) {
-  t.pass();
-  t.end();
+test('test basic write and read operation in NAT setup', function (t) {
+  // node 1 -- bootstrap node
+  var node1opts = {
+    address: '0.0.0.0',
+    port: 65522,
+    seeds: [],
+    storage: './test-db-12'
+  };
+  // node 2
+  var node2opts = {
+    address: '0.0.0.0',
+    port: 65521,
+    seeds: [
+      {
+        address: publicIpAddress,
+        port: 65522
+      }
+    ],
+    storage: './test-db-13'
+  };
+  // node 3
+  var node3opts = {
+    address: '0.0.0.0',
+    port: 65520,
+    seeds: [
+      {
+        address: publicIpAddress,
+        port: 65522
+      },
+      {
+        address: publicIpAddress,
+        port: 65521
+      }
+    ],
+    storage: './test-db-14'
+  };
+  // test write-read operations
+  var testWriteRead = function (node, key, value, onSuccess) {
+    node.put(key, value)
+    .then(function() {
+      t.pass('Stored KV [' + key + ',' + value + ']');
+      return node.get(key);
+    })
+    .then(function(storedValue){
+      if (storedValue != value) {
+        t.fail('Expected to get value ' + value + ', instead retrieved ' + storedValue);
+      } else {
+        t.pass('Retrieved value ' + value + ' for key ' + key);
+        onSuccess();
+      }
+    })
+    .catch(function (error) {
+      t.fail('Unable to succesfully write and read to/from the DHT');
+    });
+  }
+  // cleanup created storage folders
+  var cleanUpStorageFolders = function(onComplete) {
+    rimraf(node1opts.storage, function() {
+      rimraf(node2opts.storage, function() {
+        rimraf(node3opts.storage, function() {
+          onComplete();
+        });
+      });
+    });
+  };
+  // launch node 1
+  var node1 = KadServer(node1opts);
+  node1.on('ready', function () {
+    t.fail('Ready event should not be fired since there are no seeds specified.');
+  });
+  node1.on('no peers', function() {
+    t.pass('Bootstrap server running');
+    // launch node 2
+    var node2 = KadServer(node2opts);
+    node2.on('no peers', function() {
+      t.fail('Node 2 could not connect to peer ' + JSON.stringify(node2opts.seeds));
+    });
+    node2.on('ready', function() {
+      t.pass('Node 2 is connected to peer ' + JSON.stringify(node2opts.seeds));
+      // launch node 3
+      var node3 = KadServer(node3opts);
+      node3.on('no peers', function() {
+        t.fail('Node 3 could not connect to peers ' + JSON.stringify(node3opts.seeds));
+      });
+      node3.on('ready', function() {
+        t.pass('Node 3 is connected to peers ' + JSON.stringify(node3opts.seeds));
+        testWriteRead(node1, key, value, function() {
+          testWriteRead(node2, key, value, function() {
+            testWriteRead(node3, key, value, function() {
+              cleanUpStorageFolders(function() {
+                t.end();
+              });
+            });
+          });
+        });
+      });
+      node3.activate();
+    });
+    node2.activate();
+  });
+  node1.activate();
 });
 
-test('test ttl expiration', function (t) {
+test('test TTL ', function (t) {
   t.pass();
   t.end();
 });
