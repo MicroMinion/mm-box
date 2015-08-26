@@ -1,0 +1,25 @@
+FROM resin/rpi-raspbian
+
+MAINTAINER Nico Janssens, nico.b.janssens@gmail.com
+LABEL version="0.1"
+
+# install missing packages
+RUN apt-get update
+RUN apt-get -y install python-setuptools rsyslog nodejs npm
+
+# install supervisor
+RUN easy_install supervisor
+RUN mkdir -p /var/log/supervisor
+# create directory for child images to store configuration in
+RUN mkdir -p /etc/supervisor/conf.d
+
+# create flunky user
+RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
+
+# copy kadserver code
+RUN mkdir /home/flunky/kadserver
+ADD ./ /home/flunky/kadserver
+
+# copy supervisor config files
+ADD ./docker/supervisor.conf /etc/supervisor.conf
+ADD ./docker/kadserver.sv.ini /etc/supervisor/conf.d/

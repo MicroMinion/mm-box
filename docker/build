@@ -1,0 +1,60 @@
+#!/bin/bash
+
+VERSION='0.1'
+IMAGE_RPI='nocloud/kadserver-rpi'
+IMAGE_x86='nocloud/kadserver-x86'
+
+# Exit upon errors
+set -e
+
+function log_info {
+  if [ "$QUIET" == "" ]; then
+    echo -e "`basename $0`: [\e[32mINFO\e[0m] " $1
+  fi
+}
+
+function log_warn {
+  echo -e "`basename $0`: [\e[33mWARN\e[0m] " $1
+}
+
+function log_fatal {
+  echo -e "`basename $0`: [\e[31mFATAL\e[0m] " $1
+  exit 1
+}
+
+function build4rpi {
+  log_info "Building docker container to run kad server on rpi"
+  cp ./Dockerfile.rpi ../Dockerfile
+  pushd ../. >> /dev/null
+  docker build -t ${IMAGE_RPI} .
+  popd >> /dev/null
+  rm ../Dockerfile
+  log_info "Done"
+}
+
+function build4x86 {
+  log_info "Building docker container to run kad server on x86"
+  cp ./Dockerfile.x86 ../Dockerfile
+  pushd ../. >> /dev/null
+  docker build -t ${IMAGE_x86} .
+  popd >> /dev/null
+  rm ../Dockerfile
+  log_info "Done"
+}
+
+# Prints out usage information
+#
+function usage {
+cat << END
+Control script for building kad server container $VERSION
+Usage: build [ rpi|x86 ]
+END
+exit 0
+}
+
+for arg do case "$arg" in
+  rpi) shift; build4rpi $*;;
+  x86) shift; build4x86 $*;;
+  *) log_warn "Unknown command \"$arg\""; usage ;;
+  esac
+done

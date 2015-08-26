@@ -1,0 +1,53 @@
+#!/bin/bash
+
+VERSION='0.1'
+IMAGE_RPI='nocloud/kadserver-rpi'
+IMAGE_x86='nocloud/kadserver-x86'
+
+#CMD='supervisord -c /etc/supervisor.conf'
+CMD='/bin/bash'
+
+# Exit upon errors
+set -e
+
+function log_info {
+  if [ "$QUIET" == "" ]; then
+    echo -e "`basename $0`: [\e[32mINFO\e[0m] " $1
+  fi
+}
+
+function log_warn {
+  echo -e "`basename $0`: [\e[33mWARN\e[0m] " $1
+}
+
+function log_fatal {
+  echo -e "`basename $0`: [\e[31mFATAL\e[0m] " $1
+  exit 1
+}
+
+function runOnRpi {
+  log_info "Launching kad server container on rpi"
+  docker run -t -i $IMAGE_RPI $CMD
+}
+
+function runOnx86 {
+  log_info "Launching kad server container on x86"
+  docker run -t -i $IMAGE_x86 $CMD
+}
+
+# Prints out usage information
+#
+function usage {
+cat << END
+Control script for launching kad server container $VERSION
+Usage: run [ rpi|x86 ]
+END
+exit 0
+}
+
+for arg do case "$arg" in
+  rpi) shift; runOnRpi $*;;
+  x86) shift; runOnx86 $*;;
+  *) log_warn "Unknown command \"$arg\""; usage ;;
+  esac
+done
