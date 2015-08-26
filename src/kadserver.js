@@ -200,7 +200,8 @@ function initKadDht(opts) {
     address: address,
     port: port,
     seeds: opts.seeds,
-    storage: levelup(opts.storage)
+    storage: levelup(opts.storage),
+    logLevel: opts.logLevel
   });
   dht.address = address;
   dht.port = port;
