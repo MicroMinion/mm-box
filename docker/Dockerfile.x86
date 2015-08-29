@@ -3,15 +3,22 @@ FROM ubuntu:latest
 MAINTAINER Nico Janssens, nico.b.janssens@gmail.com
 LABEL version="0.1"
 
-# install missing packages
+# update apt packages
 RUN apt-get update
-RUN apt-get -y install python-setuptools rsyslog nodejs npm
 
 # install supervisor
+RUN apt-get -y install python-setuptools rsyslog
 RUN easy_install supervisor
 RUN mkdir -p /var/log/supervisor
 # create directory for child images to store configuration in
 RUN mkdir -p /etc/supervisor/conf.d
+
+# copy supervisor config files
+ADD ./docker/supervisor.conf /etc/supervisor.conf
+ADD ./docker/kadserver.sv.ini /etc/supervisor/conf.d/
+
+# install nodejs and npm
+RUN apt-get -y install nodejs npm
 
 # create flunky user
 RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
@@ -20,6 +27,8 @@ RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false f
 RUN mkdir /home/flunky/kadserver
 ADD ./ /home/flunky/kadserver
 
-# copy supervisor config files
-ADD ./docker/supervisor.conf /etc/supervisor.conf
-ADD ./docker/kadserver.sv.ini /etc/supervisor/conf.d/
+# install app dependencies
+RUN cd /home/flunky/kadserver; npm install
+
+# open port 65535
+EXPOSE 65535

@@ -3,9 +3,9 @@
 VERSION='0.1'
 IMAGE_RPI='nocloud/kadserver-rpi'
 IMAGE_x86='nocloud/kadserver-x86'
-
-#CMD='supervisord -c /etc/supervisor.conf'
-CMD='/bin/bash'
+DOCKER_PORTS='-p 65535:65535/tcp -p 65535:65535/udp'
+CMD='supervisord -c /etc/supervisor.conf'
+#CMD='/bin/bash'
 
 # Exit upon errors
 set -e
@@ -27,12 +27,12 @@ function log_fatal {
 
 function runOnRpi {
   log_info "Launching kad server container on rpi"
-  docker run -t -i $IMAGE_RPI $CMD
+  sudo docker run $DOCKER_PORTS -t -i $IMAGE_RPI $CMD
 }
 
 function runOnx86 {
   log_info "Launching kad server container on x86"
-  docker run -t -i $IMAGE_x86 $CMD
+  sudo docker run $DOCKER_PORTS -t -i $IMAGE_x86 $CMD
 }
 
 # Prints out usage information
