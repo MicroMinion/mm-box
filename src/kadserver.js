@@ -26,14 +26,14 @@ function KadServer (opts) {
 KadServer.prototype.activate = function() {
   var self = this;
   // create storage folder (if missing)
-  createStorageFolder(self.opts)
+  _createStorageFolder(self.opts)
   .then(function() {
     // port mapping -- map private to public port
-    return mapPrivateToPublicPort(self.opts);
+    return _mapPrivateToPublicPort(self.opts);
   })
   .then(function() {
     // port mapping -- get public ip address if not specified in opts
-    return getPublicAddress(self.opts);
+    return _getPublicAddress(self.opts);
   })
   .then(function(ip) {
     if (ip) {
@@ -41,7 +41,7 @@ KadServer.prototype.activate = function() {
       self.opts.nat.address = ip;
     };
     // launch dht instance
-    return initKadDht(self.opts)
+    return _initKadDht(self.opts)
   })
   .then(function(dht) {
     // store dht instance
@@ -77,9 +77,17 @@ KadServer.prototype.put = function(key, value, ttl) {
     deferred.reject(new Error(msg));
   }
   else {
-    self.dht.put(key, value, function(error) {
+    var dataObject = {};
+    dataObject.value = value;
+    if (ttl) {
+      var now = new Date();
+      var expires = now.getTime() + 1000 * ttl;
+      dataObject.expires = expires;
+    }
+    console.log('Kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].');
+    self.dht.put(key, dataObject, function(error) {
       if (error) {
-        console.error('Kad server failed storing [' + key + ',' + value + ',' + ttl + ']. ' + error);
+        console.error('Kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error);
         deferred.reject(error);
       } else {
         deferred.resolve();
@@ -104,12 +112,24 @@ KadServer.prototype.get = function(key) {
     deferred.reject(new Error(msg));
   }
   else {
-    self.dht.get(key, function(error, value) {
+    self.dht.get(key, function(error, dataObject) {
       if (error) {
         console.error('Kad server failed retrieving value for ' + key + '. ' + error);
         deferred.reject(error);
       } else {
-        deferred.resolve(value);
+        var expires = dataObject.expires;
+        if (!expires) {
+          deferred.resolve(dataObject.value)
+        } else {
+          var now = Date();
+          var expirationDate = new Date(expires);
+          if (now < expirationDate) {
+            deferred.resolve(dataObject.value);
+          } else {
+            deferred.resolve(null);
+            self.del(key);
+          }
+        }
       }
     });
   };
@@ -120,27 +140,39 @@ KadServer.prototype.get = function(key) {
  * Delete KV tuple from dht
  */
 KadServer.prototype.del = function(key) {
-
+  var self = this;
+  var deferred = Q.defer();
+  if (!self.ready) {
+    var msg = 'Kadserver not ready to delete KV tuples.';
+    console.error(msg);
+    deferred.reject(new Error(msg));
+  }
 };
 
 /** Promises */
 
-function createStorageFolder(opts) {
-  console.log('Creating storage folder ' + opts.storage);
+function _createStorageFolder(opts) {
   var deferred = Q.defer();
-  mkdirp(opts.storage, function (error) {
-    if (error) {
-      console.error('Could not create storage folder ' + opts.storage + '. ' + error);
-      deferred.reject(error);
-    }
-    else {
-      deferred.resolve();
-    }
-  });
+  if (typeof opts.storage !== 'string') {
+    console.log('Not using to storage folder');
+    // return, this is not a ref to a local folder
+    deferred.resolve();
+  } else {
+    console.log('Creating storage folder ' + opts.storage);
+    mkdirp(opts.storage, function (error) {
+      if (error) {
+        console.error('Could not create storage folder ' + opts.storage + '. ' + error);
+        deferred.reject(error);
+      }
+      else {
+        deferred.resolve();
+      }
+    });
+  }
   return deferred.promise;
 };
 
-function mapPrivateToPublicPort(opts) {
+function _mapPrivateToPublicPort(opts) {
   var deferred = Q.defer();
   if (!opts.nat) {
     console.log('Node is not located behind NAT device -- no demand for portmapping');
@@ -165,7 +197,7 @@ function mapPrivateToPublicPort(opts) {
   return deferred.promise;
 };
 
-function getPublicAddress(opts) {
+function _getPublicAddress(opts) {
   var deferred = Q.defer();
   if (!opts.nat) {
     console.log('Node is not located behind NAT device -- no demand to determine public IP address');
@@ -190,9 +222,10 @@ function getPublicAddress(opts) {
   return deferred.promise;
 };
 
-function initKadDht(opts) {
+function _initKadDht(opts) {
   var port = opts.nat? opts.nat.port: false || opts.port;
   var address = opts.nat? opts.nat.address: false || opts.address;
+  var storage = (typeof opts.storage === 'string')? levelup(opts.storage): opts.storage;
   console.log('Creating dht listening at ' + address + ':' + port);
   var deferred = Q.defer();
   // create dht
@@ -200,7 +233,7 @@ function initKadDht(opts) {
     address: address,
     port: port,
     seeds: opts.seeds,
-    storage: levelup(opts.storage),
+    storage: storage,
     logLevel: opts.logLevel
   });
   dht.address = address;
