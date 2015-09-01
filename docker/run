@@ -4,8 +4,7 @@ VERSION='0.1'
 IMAGE_RPI='nocloud/kadserver-rpi'
 IMAGE_x86='nocloud/kadserver-x86'
 DOCKER_PORTS='-p 65535:65535/tcp -p 65535:65535/udp'
-CMD='supervisord -c /etc/supervisor.conf'
-#CMD='/bin/bash'
+
 
 # Exit upon errors
 set -e

@@ -26,7 +26,7 @@ function build4rpi {
   log_info "Building docker container to run kad server on rpi"
   cp ./Dockerfile.rpi ../Dockerfile
   pushd ../. >> /dev/null
-  sudo docker build -t ${IMAGE_RPI} .
+  docker build -t ${IMAGE_RPI} .
   popd >> /dev/null
   rm ../Dockerfile
   log_info "Done"
@@ -36,7 +36,7 @@ function build4x86 {
   log_info "Building docker container to run kad server on x86"
   cp ./Dockerfile.x86 ../Dockerfile
   pushd ../. >> /dev/null
-  sudo docker build -t ${IMAGE_x86} .
+  docker build -t ${IMAGE_x86} .
   popd >> /dev/null
   rm ../Dockerfile
   log_info "Done"
