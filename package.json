@@ -22,7 +22,6 @@
     "q": ""
   },
   "devDependencies": {
-    "rimraf": "",
-    "tape": ""
+    "chai": ""
   }
 }
