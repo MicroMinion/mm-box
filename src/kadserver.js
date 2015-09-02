@@ -72,7 +72,7 @@ KadServer.prototype.put = function(key, value, ttl) {
   var self = this;
   var deferred = Q.defer();
   if (!self.ready) {
-    var msg = 'Kadserver not ready to store KV tuples.';
+    var msg = 'Kad server not ready to store KV tuples.';
     console.error(msg);
     deferred.reject(new Error(msg));
   }
@@ -90,6 +90,7 @@ KadServer.prototype.put = function(key, value, ttl) {
         console.error('Kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error);
         deferred.reject(error);
       } else {
+        console.log('Kad server stored KV tuple.')
         deferred.resolve();
       }
     });
@@ -146,7 +147,12 @@ KadServer.prototype.del = function(key) {
     var msg = 'Kadserver not ready to delete KV tuples.';
     console.error(msg);
     deferred.reject(new Error(msg));
+    return deferred.promise;
   }
+  else {
+    return self.put(key, null);
+  };
+  return deferred.promise;
 };
 
 /** Promises */
@@ -154,7 +160,7 @@ KadServer.prototype.del = function(key) {
 function _createStorageFolder(opts) {
   var deferred = Q.defer();
   if (typeof opts.storage !== 'string') {
-    console.log('Not using to storage folder');
+    console.log('Not using storage folder');
     // return, this is not a ref to a local folder
     deferred.resolve();
   } else {
