@@ -4,5 +4,5 @@
     "port": 65535
   },
   "seeds": [],
-  "storage": "./db"
+  "storage": "./test-db-1"
 }
