@@ -3,5 +3,5 @@
   "port": 65535,
   "seeds": [],
   "storage": "./db",
-  "logLevel": 5
+  "logLevel": 1
 }
