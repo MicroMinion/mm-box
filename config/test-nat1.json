@@ -1,0 +1,8 @@
+{
+  "port": 65535,
+  "nat": {
+    "port": 65535
+  },
+  "seeds": [],
+  "storage": "./db-testnat1"
+}
