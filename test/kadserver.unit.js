@@ -282,7 +282,6 @@ describe('#NAT', function() {
       assert(false, 'Error while activating node 5: ' + error);
     });
     node5.on('ready', function() {
-      done();
       node6.on('no peers', function() {
         assert(false, 'Node 6 could not connect to peers ' + JSON.stringify(node6opts.seeds));
       });
@@ -297,28 +296,28 @@ describe('#NAT', function() {
     node5.activate();
   });
 
-  // it('kadserver should write to store', function(done) {
-  //   node5.put(key, value1)
-  //     .then(function() {
-  //       expect(storage3.data).to.have.property(_createID(key));
-  //       expect(storage2.data).to.not.have.property(_createID(key));
-  //       expect(storage1.data).to.have.property(_createID(key));
-  //       done();
-  //     })
-  //     .catch(function(error) {
-  //       assert(false, 'Unable to succesfully write to the DHT');
-  //     });
-  // });
+  it('kadserver should write to NATed overlay network', function(done) {
+    node5.put(key, value1)
+      .then(function() {
+        expect(storage6.data).to.have.property(_createID(key));
+        expect(storage5.data).to.not.have.property(_createID(key));
+        expect(storage4.data).to.have.property(_createID(key));
+        done();
+      })
+      .catch(function(error) {
+        assert(false, 'Unable to succesfully write to the DHT');
+      });
+  });
 
-  // it('kadserver should read from store', function(done) {
-  //   node6.get(key)
-  //     .then(function(storedValue) {
-  //       expect(storedValue).to.equal(value1);
-  //       done();
-  //     })
-  //     .catch(function(error) {
-  //       assert(false, 'Unable to succesfully read from the DHT');
-  //     });
-  // });
+  it('kadserver should read from NATed overlay network', function(done) {
+    node6.get(key)
+      .then(function(storedValue) {
+        expect(storedValue).to.equal(value1);
+        done();
+      })
+      .catch(function(error) {
+        assert(false, 'Unable to succesfully read from the DHT');
+      });
+  });
 
 });
