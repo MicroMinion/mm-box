@@ -7,7 +7,7 @@ LABEL version="0.1"
 RUN apt-get update
 
 # install nodejs and npm
-RUN apt-get -y install nodejs npm
+RUN apt-get -y install nodejs nodejs-legacy npm
 
 # create flunky user
 RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
