@@ -1,0 +1,13 @@
+{
+  "port": 65524,
+  "nat": {
+    "port": 65524
+  },
+  "seeds": [
+    {
+      "address": "54.154.15.84",
+      "port": 65535
+    }
+  ],
+  "storage": "./db-testec2"
+}
