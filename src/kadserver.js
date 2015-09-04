@@ -81,7 +81,7 @@ KadServer.prototype.put = function(key, value, ttl) {
     dataObject.value = value;
     if (ttl) {
       var now = new Date();
-      var expires = now.getTime() + 1000 * ttl;
+      var expires = now.getTime() + (1000 * ttl);
       dataObject.expires = expires;
     }
     console.log('Kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].');
@@ -122,9 +122,8 @@ KadServer.prototype.get = function(key) {
         if (!expires) {
           deferred.resolve(dataObject.value)
         } else {
-          var now = Date();
-          var expirationDate = new Date(expires);
-          if (now < expirationDate) {
+          var now = new Date();
+          if (now.getTime() < expires) {
             deferred.resolve(dataObject.value);
           } else {
             deferred.resolve(null);
