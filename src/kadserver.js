@@ -5,7 +5,7 @@ var inherits = require('inherits');
 var kademlia = require('kad');
 var levelup = require('levelup');
 var mkdirp = require('mkdirp');
-var nat = require('nat-upnp').createClient();
+var natUPnP = require('nat-upnp');
 var Q = require('q');
 
 inherits(KadServer, EventEmitter)
@@ -28,10 +28,6 @@ KadServer.prototype.activate = function() {
   // create storage folder (if missing)
   _createStorageFolder(self.opts)
   .then(function() {
-    // port mapping -- map private to public port
-    return _mapPrivateToPublicPort(self.opts);
-  })
-  .then(function() {
     // port mapping -- get public ip address if not specified in opts
     return _getPublicAddress(self.opts);
   })
@@ -40,6 +36,10 @@ KadServer.prototype.activate = function() {
       // store IP address
       self.opts.nat.address = ip;
     };
+    // port mapping -- map private to public port
+    return _mapPrivateToPublicPort(self.opts);
+  })
+  .then(function() {
     // launch dht instance
     return _initKadDht(self.opts)
   })
@@ -178,31 +178,6 @@ function _createStorageFolder(opts) {
   return deferred.promise;
 };
 
-function _mapPrivateToPublicPort(opts) {
-  var deferred = Q.defer();
-  if (!opts.nat) {
-    console.log('Node is not located behind NAT device -- no demand for portmapping');
-    deferred.resolve();
-  }
-  else {
-    console.log('Mapping private port ' + opts.port + ' to public port ' + opts.nat.port);
-    nat.portMapping({
-      public: opts.nat.port,
-      private: opts.port,
-      ttl: 0 // indefinite lease
-    }, function(error) {
-      if (error) {
-        console.error('Could not map local port ' + opts.port + ' to public port ' + opts.nat.port + '. ' + error);
-        deferred.reject(error);
-      }
-      else {
-        deferred.resolve();
-      }
-    });
-  };
-  return deferred.promise;
-};
-
 function _getPublicAddress(opts) {
   var deferred = Q.defer();
   if (!opts.nat) {
@@ -215,7 +190,9 @@ function _getPublicAddress(opts) {
   }
   else {
     console.log('Retrieving public address');
-    nat.externalIp(function(error, ip) {
+    var client = natUPnP.createClient();
+    client.externalIp(function(error, ip) {
+      client.close();
       if (error) {
         console.error('Could not determine public IP address. ' + error);
         deferred.reject(error);
@@ -223,6 +200,38 @@ function _getPublicAddress(opts) {
       else {
         deferred.resolve(ip);
       };
+    });
+  };
+  return deferred.promise;
+};
+
+function _mapPrivateToPublicPort(opts) {
+  var deferred = Q.defer();
+  if (!opts.nat) {
+    console.log('Node is not located behind NAT device -- no demand for portmapping');
+    deferred.resolve();
+  }
+  else {
+    console.log('Mapping private port ' + opts.port + ' to public port ' + opts.nat.port);
+    var client = natUPnP.createClient();
+    var pmOpts = {};
+    pmOpts.public = {};
+    pmOpts.private = {};
+    pmOpts.public.port = opts.nat.port;
+    pmOpts.public.host = opts.nat.address;
+    pmOpts.private.port = opts.port;
+    pmOpts.ttl = 0;
+    pmOpts.protocol = 'udp';
+    pmOpts.description = 'flunky:kad';
+    client.portMapping(pmOpts, function(error) {
+      client.close();
+      if (error) {
+        console.error('Could not map local port ' + opts.port + ' to public port ' + opts.nat.port + '. ' + error);
+        deferred.reject(error);
+      }
+      else {
+        deferred.resolve();
+      }
     });
   };
   return deferred.promise;
