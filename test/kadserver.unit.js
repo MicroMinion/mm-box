@@ -179,7 +179,10 @@ describe('#localhost', function() {
         var storedData = JSON.parse(storage3.data[_createID(key)]).value;
         expect(storedData).to.have.property('expires');
         expect(storedData.expires).to.not.be.null;
-
+        return node3.get(key);
+      })
+      .then(function(storedValue) {
+        expect(storedValue).to.not.be.null;
         done();
       })
       .catch(function(error) {
