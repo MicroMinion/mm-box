@@ -62,6 +62,22 @@ KadServer.prototype.activate = function() {
   });
 };
 
+/** Deactivate KAD server
+ */
+ KadServer.prototype.deactivate = function(cb) {
+   var self = this;
+   // port unmapping
+   _unmapPrivateToPublicPort(self.opts)
+   .then(function() {
+     cb();
+   })
+   .catch(function (error) {
+     console.error('Deactivation of Kad node failed. ' + error);
+     cb(error);
+   });
+ };
+
+
 /**
  * Put KV tuple into dht
  * @param {String} key
@@ -226,6 +242,38 @@ function _mapPrivateToPublicPort(opts) {
       client.close();
       if (error) {
         console.error('Could not map local port ' + opts.port + ' to public port ' + opts.nat.port + '. ' + error);
+        deferred.reject(error);
+      }
+      else {
+        deferred.resolve();
+      }
+    });
+  };
+  return deferred.promise;
+};
+
+function _unmapPrivateToPublicPort(opts) {
+  var deferred = Q.defer();
+  if (!opts.nat) {
+    console.log('Node is not located behind NAT device -- no ports to be unmapped');
+    deferred.resolve();
+  }
+  else {
+    console.log('Unmapping public port ' + opts.nat.port);
+    var client = natUPnP.createClient();
+    var pmOpts = {};
+    pmOpts.public = {};
+    pmOpts.private = {};
+    pmOpts.public.port = opts.nat.port;
+    pmOpts.public.host = opts.nat.address;
+    pmOpts.private.port = opts.port;
+    pmOpts.ttl = 0;
+    pmOpts.protocol = 'udp';
+    pmOpts.description = 'flunky:kad';
+    client.portUnmapping(pmOpts, function(error) {
+      client.close();
+      if (error) {
+        console.error('Could not unmap public port ' + opts.nat.port + '. ' + error);
         deferred.reject(error);
       }
       else {
