@@ -3,11 +3,16 @@ FROM resin/rpi-raspbian
 MAINTAINER Nico Janssens, nico.b.janssens@gmail.com
 LABEL version="0.1"
 
-# update apt packages
+# update and upgrade apt packages
 RUN apt-get update
+RUN apt-get upgrade
 
 # install nodejs and npm
-RUN apt-get -y install nodejs nodejs-legacy npm
+RUN apt-get -y install python wget
+RUN wget http://node-arm.herokuapp.com/node_0.10.36_armhf.deb
+RUN dpkg -i node_0.10.36_armhf.deb
+RUN npm install -g node-gyp
+RUN rm node_0.10.36_armhf.deb
 
 # create flunky user
 RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
@@ -18,8 +23,5 @@ ADD ./ /home/flunky/kadserver
 
 # install app dependencies
 RUN cd /home/flunky/kadserver; npm install
-
-# open port 65535
-EXPOSE 65535
 
 ENTRYPOINT ["/home/flunky/kadserver/start.sh"]

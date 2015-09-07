@@ -3,8 +3,9 @@ FROM ubuntu:latest
 MAINTAINER Nico Janssens, nico.b.janssens@gmail.com
 LABEL version="0.1"
 
-# update apt packages
+# update and upgrade apt packages
 RUN apt-get update
+RUN apt-get upgrade
 
 # install nodejs and npm
 RUN apt-get -y install nodejs nodejs-legacy npm
@@ -18,8 +19,5 @@ ADD ./ /home/flunky/kadserver
 
 # install app dependencies
 RUN cd /home/flunky/kadserver; npm install
-
-# open port 65535
-EXPOSE 65535
 
 ENTRYPOINT ["/home/flunky/kadserver/start.sh"]
