@@ -16,7 +16,6 @@
     "config": "",
     "inherits": "",
     "kad": "",
-    "leveldown": "",
     "levelup": "",
     "mkdirp": "",
     "nat-upnp": "",

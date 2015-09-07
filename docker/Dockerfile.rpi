@@ -8,20 +8,29 @@ RUN apt-get update
 RUN apt-get -y upgrade
 
 # install nodejs and npm
-RUN apt-get -y install python wget
+RUN apt-get -y install python wget build-essential
 RUN wget http://node-arm.herokuapp.com/node_0.10.36_armhf.deb
 RUN dpkg -i node_0.10.36_armhf.deb
-RUN npm install -g node-gyp
 RUN rm node_0.10.36_armhf.deb
 
 # create flunky user
 RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
 
+# create work directory
+ENV kadserver /home/flunky/kadserver
+RUN mkdir ${kadserver}
+WORKDIR ${kadserver}
+
 # copy kadserver code
-RUN mkdir /home/flunky/kadserver
-ADD ./ /home/flunky/kadserver
+ADD . $kadserver
 
 # install app dependencies
-RUN cd /home/flunky/kadserver; npm install
+RUN npm install -g node-gyp
+RUN npm install
+RUN cd node_modules/nat-upnp/node_modules/netroute/; node-gyp rebuild 
+#hack -- netroute was not built properly
+RUN npm install leveldown #hack -- node complains about leveldown 
+lacking
 
-ENTRYPOINT ["/home/flunky/kadserver/start.sh"]
+# launch
+ENTRYPOINT ["./start.sh"]
