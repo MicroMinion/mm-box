@@ -15,7 +15,7 @@
   "dependencies": {
     "config": "",
     "inherits": "",
-    "kad": "",
+    "kad": "git+ssh://git@bitbucket.org:nodatacenter/flunky-kad.git",
     "levelup": "",
     "mkdirp": "",
     "nat-upnp": "",
@@ -27,6 +27,6 @@
     "public-ip": ""
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/** --recursive"
+    "test": "./node_modules/.bin/mocha test/kadserver.unit.js"
   }
 }
