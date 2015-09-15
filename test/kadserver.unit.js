@@ -2,8 +2,10 @@ var assert = require('chai').assert;
 var crypto = require('crypto');
 var expect = require('chai').expect;
 var publicIp = require('public-ip');
-var KadServer = require('../src/kadserver');
+var ChromeDgramTransport = require('../src/transports/chrome-dgram');
 var FakeStorage = require('./fakestorage');
+var FakeTransport = require('./faketransport');
+var KadServer = require('../src/kadserver');
 
 var myPublicIpAddress;
 var logLevel = Number(process.env.LOG_LEVEL);
@@ -17,6 +19,11 @@ var node1, node2, node3;
 var storage4, storage5, storage6;
 var node4opts, node5opts, node6opts;
 var node4, node5, node6;
+
+// using chrome dgram
+var storage7, storage8, storage9;
+var node7opts, node8opts, node9opts;
+var node7, node8, node9;
 
 // test data
 var key = 'ping';
@@ -39,6 +46,12 @@ function _printStorage456() {
   console.log('FakeStorage 4: ' + JSON.stringify(storage4.data));
   console.log('FakeStorage 5: ' + JSON.stringify(storage5.data));
   console.log('FakeStorage 6: ' + JSON.stringify(storage6.data));
+};
+
+function _printStorage789() {
+  console.log('FakeStorage 7: ' + JSON.stringify(storage7.data));
+  console.log('FakeStorage 8: ' + JSON.stringify(storage8.data));
+  console.log('FakeStorage 9: ' + JSON.stringify(storage9.data));
 };
 
 describe('#localhost', function() {
@@ -321,6 +334,68 @@ describe('#NAT', function() {
       .catch(function(error) {
         assert(false, 'Unable to succesfully read from the DHT');
       });
+  });
+
+});
+
+describe('#fake transport', function() {
+
+  before(function() {
+    storage7 = new FakeStorage('node7');
+    storage8 = new FakeStorage('node8');
+    storage9 = new FakeStorage('node9');
+
+    node7opts = {
+      address: '127.0.0.1',
+      port: 65529,
+      seeds: [],
+      storage: storage7,
+      transport: FakeTransport,
+      logLevel: logLevel
+    };
+
+    node8opts = {
+      address: '127.0.0.1',
+      port: 65528,
+      seeds: [{
+        address: '127.0.0.1',
+        port: 65529
+      }],
+      storage: storage8,
+      transport: FakeTransport,
+      logLevel: logLevel
+    };
+
+    node9opts = {
+      address: '127.0.0.1',
+      port: 65527,
+      seeds: [{
+        address: '127.0.0.1',
+        port: 65529
+      }],
+      storage: storage9,
+      transport: FakeTransport,
+      logLevel: logLevel
+    };
+
+    node7 = new KadServer(node7opts);
+    node8 = new KadServer(node8opts);
+    node9 = new KadServer(node9opts);
+  });
+
+  it('kadserver should launch bootstrap server using fake transport connector', function(done) {
+    done();
+  //   node7.on('ready', function() {
+  //     assert(false, 'Ready event should not be fired since there are no seeds specified.');
+  //   });
+  //   node7.on('error', function() {
+  //     assert(false, 'Error while activating node 7: ' + error);
+  //   });
+  //   node7.on('no peers', function() {
+  //     //expect(node7.dht.address).to.equal(myPublicIpAddress);
+  //     done();
+  //   });
+   node7.activate();
   });
 
 });
