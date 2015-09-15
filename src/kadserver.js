@@ -6,53 +6,55 @@ var kademlia = require('kad');
 var levelup = require('levelup');
 var mkdirp = require('mkdirp');
 var natUPnP = require('nat-upnp');
+var Logger = require('../node_modules/kad/lib/logger');
 var Q = require('q');
 
 inherits(KadServer, EventEmitter)
 
 /**
  * Create KAD server
- * @param {Object} opts
+ * @param {Object} args
  */
-function KadServer (opts) {
-  var self = this;
-  if (!(self instanceof KadServer)) return new KadServer(opts);
-  self.opts = opts;
-  console.log('Kad server configuration = ' + JSON.stringify(self.opts));
+function KadServer(args) {
+  if (!(this instanceof KadServer)) return new KadServer(args);
+  this.args = args;
+  this._log = new Logger(args.logLevel);
+  this._log.info('[kadserver] kad sever configuration = ' + JSON.stringify(this.args));
 };
 
-/** Activate KAD server
-  */
+/**
+ * Activate KAD server
+ */
 KadServer.prototype.activate = function() {
   var self = this;
   // create storage folder (if missing)
-  _createStorageFolder(self.opts)
+  _createStorageFolder(self.args, self._log)
   .then(function() {
-    // port mapping -- get public ip address if not specified in opts
-    return _getPublicAddress(self.opts);
+    // port mapping -- get public ip address if not specified in args
+    return _getPublicAddress(self.args, self._log);
   })
   .then(function(ip) {
     if (ip) {
       // store IP address
-      self.opts.nat.address = ip;
+      self.args.nat.address = ip;
     };
     // port mapping -- map private to public port
-    return _mapPrivateToPublicPort(self.opts);
+    return _mapPrivateToPublicPort(self.args, self._log);
   })
   .then(function() {
     // launch dht instance
-    return _initKadDht(self.opts)
+    return _initKadDht(self.args, self._log)
   })
   .then(function(dht) {
     // store dht instance
     self.dht = dht;
   })
   .catch(function (error) {
-    console.error('Init Kad node failed. ' + error);
+    self._log.error('[kadserver] init Kad node failed. ' + error);
     self.emit('error', error);
   })
   .done(function() {
-    console.log('Kad server running at ' + self.dht.address + ':' + self.dht.port);
+    self._log.info('[kadserver] kad server running at ' + self.dht.address + ':' + self.dht.port);
     if (self.dht.connected) {
       self.ready = true;
       self.emit('ready');
@@ -67,12 +69,12 @@ KadServer.prototype.activate = function() {
  KadServer.prototype.deactivate = function(cb) {
    var self = this;
    // port unmapping
-   _unmapPrivateToPublicPort(self.opts)
+   _unmapPrivateToPublicPort(self.args, self._log)
    .then(function() {
      cb();
    })
    .catch(function (error) {
-     console.error('Deactivation of Kad node failed. ' + error);
+     self._log.error('[kadserver] deactivation of Kad node failed. ' + error);
      cb(error);
    });
  };
@@ -85,11 +87,10 @@ KadServer.prototype.activate = function() {
  * @param {Integer} ttl
  */
 KadServer.prototype.put = function(key, value, ttl) {
-  var self = this;
   var deferred = Q.defer();
-  if (!self.ready) {
-    var msg = 'Kad server not ready to store KV tuples.';
-    console.error(msg);
+  if (!this.ready) {
+    var msg = '[kadserver] kad server not ready to store KV tuples.';
+    this._log.error(msg);
     deferred.reject(new Error(msg));
   }
   else {
@@ -100,13 +101,14 @@ KadServer.prototype.put = function(key, value, ttl) {
       var expires = now.getTime() + (1000 * ttl);
       dataObject.expires = expires;
     }
-    console.log('Kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].');
-    self.dht.put(key, dataObject, function(error) {
+    this._log.debug('[kadserver] kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].');
+    var self = this;
+    this.dht.put(key, dataObject, function(error) {
       if (error) {
-        console.error('Kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error);
+        self._log.error('[kadserver] kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error);
         deferred.reject(error);
       } else {
-        console.log('Kad server stored KV tuple.')
+        self._log.debug('[kadserver] kad server stored KV tuple.')
         deferred.resolve();
       }
     });
@@ -118,20 +120,19 @@ KadServer.prototype.put = function(key, value, ttl) {
  * Get value from dht
  * @param {String} key
  * @return {Object|null} value
-
  */
 KadServer.prototype.get = function(key) {
-  var self = this;
   var deferred = Q.defer();
-  if (!self.ready) {
-    var msg = 'Kadserver not ready to retrieve values.';
-    console.error(msg);
+  if (!this.ready) {
+    var msg = '[kadserver] kad server not ready to retrieve values.';
+    this._log.error(msg);
     deferred.reject(new Error(msg));
   }
   else {
-    self.dht.get(key, function(error, dataObject) {
+    var self = this;
+    this.dht.get(key, function(error, dataObject) {
       if (error) {
-        console.error('Kad server failed retrieving value for ' + key + '. ' + error);
+        self._log.error('[kadserver] kad server failed retrieving value for ' + key + '. ' + error);
         deferred.reject(error);
       } else {
         var expires = dataObject.expires;
@@ -156,33 +157,32 @@ KadServer.prototype.get = function(key) {
  * Delete KV tuple from dht
  */
 KadServer.prototype.del = function(key) {
-  var self = this;
   var deferred = Q.defer();
-  if (!self.ready) {
-    var msg = 'Kadserver not ready to delete KV tuples.';
-    console.error(msg);
+  if (!this.ready) {
+    var msg = '[kadserver] kad server not ready to delete KV tuples.';
+    this._log.error(msg);
     deferred.reject(new Error(msg));
     return deferred.promise;
   }
   else {
-    return self.put(key, null);
+    return this.put(key, null);
   };
   return deferred.promise;
 };
 
 /** Promises */
 
-function _createStorageFolder(opts) {
+function _createStorageFolder(args, _log) {
   var deferred = Q.defer();
-  if (typeof opts.storage !== 'string') {
-    console.log('Not using storage folder');
+  if (typeof args.storage !== 'string') {
+    _log.debug('[kadserver] not using storage folder');
     // return, this is not a ref to a local folder
     deferred.resolve();
   } else {
-    console.log('Creating storage folder ' + opts.storage);
-    mkdirp(opts.storage, function (error) {
+    _log.debug('[kadserver] creating storage folder ' + args.storage);
+    mkdirp(args.storage, function (error) {
       if (error) {
-        console.error('Could not create storage folder ' + opts.storage + '. ' + error);
+        _log.error('[kadserver] could not create storage folder ' + args.storage + '. ' + error);
         deferred.reject(error);
       }
       else {
@@ -193,23 +193,23 @@ function _createStorageFolder(opts) {
   return deferred.promise;
 };
 
-function _getPublicAddress(opts) {
+function _getPublicAddress(args, _log) {
   var deferred = Q.defer();
-  if (!opts.nat) {
-    console.log('Node is not located behind NAT device -- no demand to determine public IP address');
+  if (!args.nat) {
+    _log.debug('[kadserver] node is not located behind NAT device -- no demand to determine public IP address');
     deferred.resolve();
   }
-  else if (opts.nat.address) {
-    console.log('Public address is already set');
-    deferred.resolve(opts.nat.address);
+  else if (args.nat.address) {
+    _log.debug('[kadserver] public address is already set');
+    deferred.resolve(args.nat.address);
   }
   else {
-    console.log('Retrieving public address');
+    _log.debug('[kadserver] retrieving public address');
     var client = natUPnP.createClient();
     client.externalIp(function(error, ip) {
       client.close();
       if (error) {
-        console.error('Could not determine public IP address. ' + error);
+        _log.error('[kadserver] could not determine public IP address. ' + error);
         deferred.reject(error);
       }
       else {
@@ -220,28 +220,28 @@ function _getPublicAddress(opts) {
   return deferred.promise;
 };
 
-function _mapPrivateToPublicPort(opts) {
+function _mapPrivateToPublicPort(args, _log) {
   var deferred = Q.defer();
-  if (!opts.nat) {
-    console.log('Node is not located behind NAT device -- no demand for portmapping');
+  if (!args.nat) {
+    _log.debug('[kadserver] node is not located behind NAT device -- no demand for portmapping');
     deferred.resolve();
   }
   else {
-    console.log('Mapping private port ' + opts.port + ' to public port ' + opts.nat.port);
+    _log.debug('[kadserver] mapping private port ' + args.port + ' to public port ' + args.nat.port);
     var client = natUPnP.createClient();
-    var pmOpts = {};
-    pmOpts.public = {};
-    pmOpts.private = {};
-    pmOpts.public.port = opts.nat.port;
-    pmOpts.public.host = opts.nat.address;
-    pmOpts.private.port = opts.port;
-    pmOpts.ttl = 0;
-    pmOpts.protocol = 'udp';
-    pmOpts.description = 'flunky:kad';
-    client.portMapping(pmOpts, function(error) {
+    var pmargs = {};
+    pmargs.public = {};
+    pmargs.private = {};
+    pmargs.public.port = args.nat.port;
+    pmargs.public.host = args.nat.address;
+    pmargs.private.port = args.port;
+    pmargs.ttl = 0;
+    pmargs.protocol = 'udp';
+    pmargs.description = 'flunky:kad';
+    client.portMapping(pmargs, function(error) {
       client.close();
       if (error) {
-        console.error('Could not map local port ' + opts.port + ' to public port ' + opts.nat.port + '. ' + error);
+        _log.error('[kadserver] could not map local port ' + args.port + ' to public port ' + args.nat.port + '. ' + error);
         deferred.reject(error);
       }
       else {
@@ -252,28 +252,28 @@ function _mapPrivateToPublicPort(opts) {
   return deferred.promise;
 };
 
-function _unmapPrivateToPublicPort(opts) {
+function _unmapPrivateToPublicPort(args, _log) {
   var deferred = Q.defer();
-  if (!opts.nat) {
-    console.log('Node is not located behind NAT device -- no ports to be unmapped');
+  if (!args.nat) {
+    _log.debug('[kadserver] node is not located behind NAT device -- no ports to be unmapped');
     deferred.resolve();
   }
   else {
-    console.log('Unmapping public port ' + opts.nat.port);
+    _log.debug('[kadserver] unmapping public port ' + args.nat.port);
     var client = natUPnP.createClient();
-    var pmOpts = {};
-    pmOpts.public = {};
-    pmOpts.private = {};
-    pmOpts.public.port = opts.nat.port;
-    pmOpts.public.host = opts.nat.address;
-    pmOpts.private.port = opts.port;
-    pmOpts.ttl = 0;
-    pmOpts.protocol = 'udp';
-    pmOpts.description = 'flunky:kad';
-    client.portUnmapping(pmOpts, function(error) {
+    var pmargs = {};
+    pmargs.public = {};
+    pmargs.private = {};
+    pmargs.public.port = args.nat.port;
+    pmargs.public.host = args.nat.address;
+    pmargs.private.port = args.port;
+    pmargs.ttl = 0;
+    pmargs.protocol = 'udp';
+    pmargs.description = 'flunky:kad';
+    client.portUnmapping(pmargs, function(error) {
       client.close();
       if (error) {
-        console.error('Could not unmap public port ' + opts.nat.port + '. ' + error);
+        _log.error('[kadserver] could not unmap public port ' + args.nat.port + '. ' + error);
         deferred.reject(error);
       }
       else {
@@ -284,37 +284,37 @@ function _unmapPrivateToPublicPort(opts) {
   return deferred.promise;
 };
 
-function _initKadDht(opts) {
-  var port = opts.nat? opts.nat.port: false || opts.port;
-  var address = opts.nat? opts.nat.address: false || opts.address;
-  var storage = (typeof opts.storage === 'string')? levelup(opts.storage): opts.storage;
-  console.log('Creating dht listening at ' + address + ':' + port);
+function _initKadDht(args, _log) {
+  var port = args.nat? args.nat.port: false || args.port;
+  var address = args.nat? args.nat.address: false || args.address;
+  var storage = (typeof args.storage === 'string')? levelup(args.storage): args.storage;
+  _log.debug('[kadserver] creating dht listening at ' + address + ':' + port);
   var deferred = Q.defer();
   // create dht
   var dht = kademlia({
     address: address,
     port: port,
-    seeds: opts.seeds,
+    seeds: args.seeds,
     storage: storage,
-    logLevel: opts.logLevel
+    logLevel: args.logLevel
   });
   dht.address = address;
   dht.port = port;
   // if no seeds, then we're done (this is a bootstrap node)
-  if (opts.seeds.length == 0) {
-    console.log('No seeds specified -- this is a bootstrap node');
+  if (args.seeds.length == 0) {
+    _log.debug('[kadserver] no seeds specified -- this is a bootstrap node');
     deferred.resolve(dht);
   }
   else {
     // connect to overlay network
-    console.log('Connecting dht instance to seeds ' + JSON.stringify(opts.seeds));
+    _log.debug('[kadserver] connecting dht instance to seeds ' + JSON.stringify(args.seeds));
     dht.on('connect', function(error) {
       if (error) {
-        console.error('Could not connect to seeds. ' + error);
+        _log.error('[kadserver] could not connect to seeds. ' + error);
         deferred.reject(error);
       }
       else {
-        console.log('Overlay connection succeeded');
+        _log.debug('[kadserver] overlay connection succeeded');
         dht.connected = true;
         deferred.resolve(dht);
       }
