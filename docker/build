@@ -5,8 +5,6 @@ WHAT_AM_I=$(uname -m)
 IMAGE_RPI='nocloud/kadserver-rpi'
 IMAGE_x86='nocloud/kadserver-x86'
 
-echo $WHAT_AM_I
-
 # Exit upon errors
 set -e
 
@@ -27,10 +25,10 @@ function log_fatal {
 
 function build {
   if [ "$WHAT_AM_I" == "armv6l" ]; then
-    build4rpi()
+    build4rpi
   else
-    build4x86()
-  fi    
+    build4x86
+  fi
 }
 
 function build4rpi {
