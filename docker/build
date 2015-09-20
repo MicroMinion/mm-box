@@ -1,8 +1,11 @@
 #!/bin/bash
 
 VERSION='0.1'
+WHAT_AM_I=$(uname -m)
 IMAGE_RPI='nocloud/kadserver-rpi'
 IMAGE_x86='nocloud/kadserver-x86'
+
+echo $WHAT_AM_I
 
 # Exit upon errors
 set -e
@@ -20,6 +23,14 @@ function log_warn {
 function log_fatal {
   echo -e "`basename $0`: [\e[31mFATAL\e[0m] " $1
   exit 1
+}
+
+function build {
+  if [ "$WHAT_AM_I" == "armv6l" ]; then
+    build4rpi()
+  else
+    build4x86()
+  fi    
 }
 
 function build4rpi {
@@ -47,14 +58,9 @@ function build4x86 {
 function usage {
 cat << END
 Control script for building kad server container $VERSION
-Usage: build [ rpi|x86 ]
+Usage: build
 END
 exit 0
 }
 
-for arg do case "$arg" in
-  rpi) shift; build4rpi $*;;
-  x86) shift; build4x86 $*;;
-  *) log_warn "Unknown command \"$arg\""; usage ;;
-  esac
-done
+build
