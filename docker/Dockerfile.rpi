@@ -8,7 +8,7 @@ RUN apt-get update
 RUN apt-get -y upgrade
 
 # install nodejs and npm
-RUN apt-get -y install python wget build-essential
+RUN apt-get -y install build-essential python wget git openssh-client
 RUN wget http://node-arm.herokuapp.com/node_0.10.36_armhf.deb
 RUN dpkg -i node_0.10.36_armhf.deb
 RUN rm node_0.10.36_armhf.deb
@@ -25,8 +25,7 @@ WORKDIR ${kadserver}
 ADD . $kadserver
 
 # install app dependencies
-RUN npm install -g node-gyp
-RUN npm install
+RUN "./install.sh"
 #hack -- netroute was not built properly
 RUN cd node_modules/nat-upnp/node_modules/netroute/; node-gyp rebuild
 #hack -- node complains about leveldown lacking
