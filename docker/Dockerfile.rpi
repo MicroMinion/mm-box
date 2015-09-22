@@ -25,7 +25,7 @@ WORKDIR ${kadserver}
 ADD . $kadserver
 
 # install app dependencies
-RUN "./install.sh"
+RUN "./docker/install.sh"
 #hack -- netroute was not built properly
 RUN cd node_modules/nat-upnp/node_modules/netroute/; node-gyp rebuild
 #hack -- node complains about leveldown lacking
