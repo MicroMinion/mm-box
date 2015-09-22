@@ -3,7 +3,7 @@
 VERSION='0.1'
 WHAT_AM_I=$(uname -m)
 IMAGE_RPI='nocloud/kadserver-rpi'
-IMAGE_x86='nocloud/kadserver-x86'
+IMAGE_x86='nocloud/kadserver'
 
 # Exit upon errors
 set -e
@@ -33,21 +33,21 @@ function build {
 
 function build4rpi {
   log_info "Building docker container to run kad server on rpi"
-  cp ./Dockerfile.rpi ../Dockerfile
-  pushd ../. >> /dev/null
+  cp ./Dockerfile.rpi ../../Dockerfile
+  pushd ../../. >> /dev/null
   docker build -t ${IMAGE_RPI} .
   popd >> /dev/null
-  rm ../Dockerfile
+  rm ../../Dockerfile
   log_info "Done"
 }
 
 function build4x86 {
   log_info "Building docker container to run kad server on x86"
-  cp ./Dockerfile.x86 ../Dockerfile
-  pushd ../. >> /dev/null
+  cp ./Dockerfile.x86 ../../Dockerfile
+  pushd ../../. >> /dev/null
   docker build -t ${IMAGE_x86} .
   popd >> /dev/null
-  rm ../Dockerfile
+  rm ../../Dockerfile
   log_info "Done"
 }
 

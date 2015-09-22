@@ -7,21 +7,26 @@ LABEL version="0.1"
 RUN apt-get update
 RUN apt-get -y upgrade
 
-# install nodejs and npm
-RUN apt-get -y install git build-essential nodejs nodejs-legacy npm
+# install nodejs and npm (we need npm >= 2, while apt is hosting 1.3)
+RUN apt-get -y install git build-essential software-properties-common python-software-properties
+RUN add-apt-repository -y ppa:chris-lea/node.js
+RUN apt-get update
+RUN apt-get -y install nodejs
+RUN npm update -g npm
 
 # create flunky user
 RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
 
 # create work directory
-ENV kadserver /home/flunky/kadserver
-RUN mkdir ${kadserver}
-WORKDIR ${kadserver}
+ENV dht /home/flunky/dht
+RUN mkdir ${dht}
+WORKDIR ${dht}
 
-# copy kadserver code
-ADD . $kadserver
+# copy all code
+ADD . $dht
 
-# install app dependencies
-RUN "./install.sh"
+# install npm dependencies
+WORKDIR kad-server
+RUN npm install
 
-ENTRYPOINT ["/home/flunky/kadserver/start.sh"]
+#ENTRYPOINT ["./start.sh"]
