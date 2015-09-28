@@ -17,9 +17,11 @@
     "inherits": "",
     "kad": "../flunky-kad",
     "levelup": "",
+    "merge": "",
     "mkdirp": "",
     "nat-upnp": "",
-    "q": ""
+    "q": "",
+    "winston": ""
   },
   "devDependencies": {
     "chai": "",
@@ -27,6 +29,6 @@
     "public-ip": ""
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/kadserver.unit.js"
+    "test": "./node_modules/.bin/mocha test/*.unit.js"
   }
 }
