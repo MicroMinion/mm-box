@@ -18,15 +18,16 @@
     "kad": "../flunky-kad",
     "levelup": "",
     "merge": "",
+    "minimist": "",
     "mkdirp": "",
     "nat-upnp": "",
+    "public-ip": "",
     "q": "",
     "winston": ""
   },
   "devDependencies": {
     "chai": "",
-    "mocha": "",
-    "public-ip": ""
+    "mocha": ""
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha test/*.unit.js"
