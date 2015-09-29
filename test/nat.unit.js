@@ -5,6 +5,7 @@ var winston = require('winston')
 var chai = require('chai')
 var chaiAsPromised = require('chai-as-promised')
 var assert = chai.assert
+var expect = chai.expect
 chai.use(chaiAsPromised)
 chai.should()
 
@@ -13,46 +14,88 @@ winston.level = 'debug'
 var myPublicIpAddress
 
 describe('#NAT', function () {
+
+  this.timeout(10000)
+
   before(function (done) {
-    publicIp(function (error, ip) {
-      if (error) {
+    nat.getPublicIpAddressP()
+      .then(function (ip) {
+        myPublicIpAddress = ip
+        done()
+      })
+      .catch(function (error) {
         assert(false, 'Could not retrieve public address before running tests. ' + error)
-      }
-      myPublicIpAddress = ip
-      done()
-    })
-  })
-  afterEach(function (done) {
-    done()
+      })
   })
 
   it('should return my public ip address', function () {
     return nat.getPublicGWAddressP().should.eventually.equal(myPublicIpAddress)
   })
 
-  it('should map UDP port 9000 to 9000', function () {
+  it('should map UDP port 65535 to 65535 and delete it afterwards', function () {
     var pmargs = {}
     pmargs.public = {}
-    pmargs.private = {}
-    pmargs.private.port = 9000
-    return nat.mapPrivateToPublicPortP(pmargs).should.be.fulfilled
+    pmargs.public.port = 65535
+    var myMapping
+    return nat.mapPrivateToPublicPortP(pmargs)
+      .then(function (args) {
+        myMapping = args
+        return nat.getPortMappingsP()
+      })
+      .then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.true
+        return nat.unmapPrivateToPublicPortP(myMapping)
+      }).
+      then(function () {
+        return nat.getPortMappingsP()
+      }).
+      then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.false
+      })
   })
 
-  it('should map TCP port 9001 to 9001, using custom description and ttl = 2 minutes', function () {
+  it('should map TCP port 65534 to 65533, using custom description and ttl = 2 minutes, and delete it afterwards', function () {
     var pmargs = {}
     pmargs.public = {}
     pmargs.private = {}
-    pmargs.private.port = 9001
+    pmargs.private.port = 65534
+    pmargs.public.port = 65533
     pmargs.protocol = 'TCP'
     pmargs.ttl = 120
     pmargs.description = 'funky:test'
-    return nat.mapPrivateToPublicPortP(pmargs).should.be.fulfilled
+    var myMapping
+    return nat.mapPrivateToPublicPortP(pmargs)
+      .then(function (args) {
+        myMapping = args
+        return nat.getPortMappingsP()
+      })
+      .then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.true
+        return nat.unmapPrivateToPublicPortP(myMapping)
+      }).
+      then(function () {
+        return nat.getPortMappingsP()
+      }).
+      then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.false
+      })
   })
-
-  it('should list port mappings for 9000 and 9001', function () {
-
-  }
-
-  if
-
 })
+
+function _pmMatch (myMapping, returnedMappings) {
+  var match = false
+  returnedMappings.forEach(function (returnedMapping) {
+    if (
+      returnedMapping.public.port === myMapping.public.port &&
+      returnedMapping.public.host === myMapping.public.host &&
+      returnedMapping.private.port === myMapping.private.port &&
+      returnedMapping.private.host === myMapping.private.host &&
+      returnedMapping.ttl === myMapping.ttl &&
+      returnedMapping.protocol.toLowerCase() === myMapping.protocol.toLowerCase() &&
+      returnedMapping.description === myMapping.description
+    ) {
+      match = true
+    }
+  })
+  return match
+}
