@@ -2,7 +2,7 @@
 
 VERSION='0.1'
 WHAT_AM_I=$(uname -m)
-IMAGE_RPI='nocloud/kadserver-rpi'
+IMAGE_RPI='nocloud/rpi-kadserver'
 IMAGE_x86='nocloud/kadserver'
 DOCKER_PORTS='-p 65535:65535/tcp -p 65535:65535/udp'
 
