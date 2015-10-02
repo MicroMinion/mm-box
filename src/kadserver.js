@@ -5,7 +5,7 @@ var inherits = require('inherits')
 var kademlia = require('kad')
 var levelup = require('levelup')
 var mkdirp = require('mkdirp')
-var nat = require('nat')
+var nat = require('./nat')
 var Q = require('q')
 var winston = require('winston')
 
@@ -18,7 +18,7 @@ inherits(KadServer, EventEmitter)
 function KadServer (args) {
   if (!(this instanceof KadServer)) return new KadServer(args)
   this.args = args
-  winston.level = args.logLevel
+  winston.level = args.loglevel.server
   winston.info('[kadserver] kad sever configuration = ' + JSON.stringify(this.args))
 }
 
@@ -237,7 +237,7 @@ function _initKadDhtP (args) {
     port: port,
     seeds: args.seeds,
     storage: storage,
-    logLevel: args.logLevel
+    logLevel: args.loglevel.kad
   })
   dht.address = address
   dht.port = port
