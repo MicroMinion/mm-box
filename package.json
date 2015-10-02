@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "chai": "",
+    "chai-as-promised": "",
     "mocha": ""
   },
   "scripts": {
