@@ -26,6 +26,3 @@ ADD . $dht
 # install npm dependencies
 WORKDIR kad-server
 RUN npm install
-
-# launch
-#ENTRYPOINT ["./start.sh"]

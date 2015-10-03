@@ -4,8 +4,9 @@ VERSION='0.1'
 WHAT_AM_I=$(uname -m)
 IMAGE_RPI='nocloud/rpi-kadserver'
 IMAGE_x86='nocloud/kadserver'
-DOCKER_PORTS='-p 65535:65535/tcp -p 65535:65535/udp'
+CMD="./start.sh $@"
 
+echo $CMD
 
 # Exit upon errors
 set -e
@@ -28,10 +29,10 @@ function log_fatal {
 function run {
   if [ "$WHAT_AM_I" == "armv6l" ]; then
     log_info "Launching kad server container on rpi"
-    sudo docker run $DOCKER_PORTS -t -i $IMAGE_RPI $CMD
+    docker run --net=host -d $IMAGE_RPI $CMD
   else
-    log_info "Launching kad server container on x86"
-    sudo docker run $DOCKER_PORTS -t -i $IMAGE_x86 $CMD
+    log_info "Launching kad server container on x86"   
+    docker run --net=host -d $IMAGE_x86 $CMD
   fi
 }
 
@@ -40,7 +41,7 @@ function run {
 function usage {
 cat << END
 Control script for launching kad server container $VERSION
-Usage: run
+Usage: run options
 END
 exit 0
 }

@@ -17,6 +17,7 @@
     "inherits": "",
     "kad": "../flunky-kad",
     "levelup": "",
+    "leveldown":"",
     "merge": "",
     "minimist": "",
     "mkdirp": "",
