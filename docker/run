@@ -27,11 +27,11 @@ function log_fatal {
 }
 
 function run {
-  if [ "$WHAT_AM_I" == "armv6l" ]; then
+  if [ "$WHAT_AM_I" == "armv6l" ] || [ "$WHAT_AM_I" == "armv7l" ]; then
     log_info "Launching kad server container on rpi"
     docker run --net=host -d $IMAGE_RPI $CMD
   else
-    log_info "Launching kad server container on x86"   
+    log_info "Launching kad server container on x86"
     docker run --net=host -d $IMAGE_x86 $CMD
   fi
 }
