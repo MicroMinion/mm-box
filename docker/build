@@ -24,7 +24,7 @@ function log_fatal {
 }
 
 function build {
-  if [ "$WHAT_AM_I" == "armv6l" ]; then
+  if [ "$WHAT_AM_I" == "armv6l" ] || [ "$WHAT_AM_I" == "armv7l" ]; then
     build4rpi
   else
     build4x86
