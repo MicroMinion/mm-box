@@ -10,7 +10,7 @@ var KadServer = require('../src/kadserver')
 var myPublicIpAddress
 
 var loglevel = {}
-loglevel.server = "info"
+loglevel.server = 'debug'
 loglevel.kad = 1
 
 // local test setup
@@ -106,7 +106,7 @@ describe('#localhost', function () {
       assert(true, 'Bootstrap server running')
       done()
     })
-    node1.on('error', function () {
+    node1.on('error', function (error) {
       assert(false, 'Error while activating node 1: ' + error)
     })
     node1.activate()
@@ -116,7 +116,7 @@ describe('#localhost', function () {
     node2.on('no peers', function () {
       assert(false, 'Node 2 could not connect to peer ' + JSON.stringify(node2opts.seeds))
     })
-    node2.on('error', function () {
+    node2.on('error', function (error) {
       assert(false, 'Error while activating node 2: ' + error)
     })
     node2.on('ready', function () {
@@ -124,7 +124,7 @@ describe('#localhost', function () {
       node3.on('no peers', function () {
         assert(false, 'Node 3 could not connect to peers ' + JSON.stringify(node3opts.seeds))
       })
-      node3.on('error', function () {
+      node3.on('error', function (error) {
         assert(false, 'Error while activating node 3: ' + error)
       })
       node3.on('ready', function () {
@@ -136,7 +136,7 @@ describe('#localhost', function () {
   })
 
   it('kadserver should write to store', function (done) {
-    node2.put(key, value1)
+    node2.putP(key, value1)
       .then(function () {
         expect(storage3.data).to.have.property(_createID(key))
         expect(storage2.data).to.not.have.property(_createID(key))
@@ -144,25 +144,25 @@ describe('#localhost', function () {
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully write to the DHT')
+        assert(false, 'Unable to succesfully write to the DHT. ' + error)
       })
   })
 
   it('kadserver should read from store', function (done) {
-    node3.get(key)
+    node3.getP(key)
       .then(function (storedValue) {
         expect(storedValue).to.equal(value1)
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully read from the DHT')
+        assert(false, 'Unable to succesfully read from the DHT. ' + error)
       })
   })
 
   it('kadserver should overwrite KV tuple', function (done) {
-    node3.put(key, value2)
+    node3.putP(key, value2)
       .then(function () {
-        return node2.get(key)
+        return node2.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.not.equal(value1)
@@ -170,57 +170,58 @@ describe('#localhost', function () {
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully overwrite a KV tuple in the DHT')
+        assert(false, 'Unable to succesfully overwrite a KV tuple in the DHT. ' + error)
       })
   })
 
   it('kadserver should delete from store', function (done) {
-    node2.del(key)
+    node2.delP(key)
       .then(function () {
-        return node3.get(key)
+        return node3.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.be.null
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully delete from the DHT')
+        assert(false, 'Unable to succesfully delete from the DHT. ' + error)
       })
   })
 
   it('kadserver should write KV with TTL to store', function (done) {
-    node2.put(key, value3, ttl)
+    node2.putP(key, value3, ttl)
       .then(function () {
         var storedData = JSON.parse(storage3.data[_createID(key)]).value
         expect(storedData).to.have.property('expires')
         expect(storedData.expires).to.not.be.null
-        return node3.get(key)
+        return node3.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.not.be.null
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully write KV tuple with TTL to the DHT')
+        assert(false, 'Unable to succesfully write KV tuple with TTL to the DHT. ' + error)
       })
   })
 
   it('kadserver should delete value after TTL expires', function (done) {
     setTimeout(function () {
-      node3.get(key)
+      node3.getP(key)
         .then(function (storedValue) {
           expect(storedValue).to.be.null
           done()
         })
         .catch(function (error) {
-          assert(false, 'Unable to remove expired data from the DHT')
+          assert(false, 'Unable to remove expired data from the DHT. ' + error)
         })
     }, 1000)
   })
-
 })
 
 describe('#NAT', function () {
+  this.timeout(10000)
+
   before(function (done) {
     publicIp(function (err, ip) {
       myPublicIpAddress = ip
@@ -233,7 +234,7 @@ describe('#NAT', function () {
         address: '0.0.0.0',
         port: 65532,
         nat: {
-          port: 65532
+          type: 'upnp'
         },
         seeds: [],
         storage: storage4,
@@ -243,8 +244,8 @@ describe('#NAT', function () {
       node5opts = {
         address: '0.0.0.0',
         port: 65531,
-        nat: {
-          port: 65531
+        public: {
+          type: 'upnp'
         },
         seeds: [{
           address: myPublicIpAddress,
@@ -257,8 +258,8 @@ describe('#NAT', function () {
       node6opts = {
         address: '0.0.0.0',
         port: 65530,
-        nat: {
-          port: 65530
+        public: {
+          type: 'upnp'
         },
         seeds: [{
           address: myPublicIpAddress,
@@ -280,7 +281,7 @@ describe('#NAT', function () {
     node4.on('ready', function () {
       assert(false, 'Ready event should not be fired since there are no seeds specified.')
     })
-    node4.on('error', function () {
+    node4.on('error', function (error) {
       assert(false, 'Error while activating node 4: ' + error)
     })
     node4.on('no peers', function () {
@@ -294,14 +295,14 @@ describe('#NAT', function () {
     node5.on('no peers', function () {
       assert(false, 'Node 5 could not connect to peer ' + JSON.stringify(node5opts.seeds))
     })
-    node5.on('error', function () {
+    node5.on('error', function (error) {
       assert(false, 'Error while activating node 5: ' + error)
     })
     node5.on('ready', function () {
       node6.on('no peers', function () {
         assert(false, 'Node 6 could not connect to peers ' + JSON.stringify(node6opts.seeds))
       })
-      node6.on('error', function () {
+      node6.on('error', function (error) {
         assert(false, 'Error while activating node 6: ' + error)
       })
       node6.on('ready', function () {
@@ -313,7 +314,7 @@ describe('#NAT', function () {
   })
 
   it('kadserver should write to NATed overlay network', function (done) {
-    node5.put(key, value1)
+    node5.putP(key, value1)
       .then(function () {
         expect(storage6.data).to.have.property(_createID(key))
         expect(storage5.data).to.not.have.property(_createID(key))
@@ -321,21 +322,20 @@ describe('#NAT', function () {
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully write to the DHT')
+        assert(false, 'Unable to succesfully write to the DHT. ' + error)
       })
   })
 
   it('kadserver should read from NATed overlay network', function (done) {
-    node6.get(key)
+    node6.getP(key)
       .then(function (storedValue) {
         expect(storedValue).to.equal(value1)
         done()
       })
       .catch(function (error) {
-        assert(false, 'Unable to succesfully read from the DHT')
+        assert(false, 'Unable to succesfully read from the DHT. ' + error)
       })
   })
-
 })
 
 describe('#fake transport', function () {
@@ -396,5 +396,4 @@ describe('#fake transport', function () {
     //   })
     node7.activate()
   })
-
 })

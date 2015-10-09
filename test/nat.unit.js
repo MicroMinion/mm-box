@@ -44,11 +44,13 @@ describe('#NAT', function () {
       .then(function (currentMappings) {
         expect(_pmMatch(myMapping, currentMappings)).to.be.true
         return nat.unmapPrivateToPublicPortP(myMapping)
-      }).then(function () {
-      return nat.getPortMappingsP()
-    }).then(function (currentMappings) {
-      expect(_pmMatch(myMapping, currentMappings)).to.be.false
-    })
+      })
+      .then(function () {
+        return nat.getPortMappingsP()
+      })
+      .then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.false
+      })
   })
 
   it('should map TCP port 65534 to 65533, using custom description and ttl = 2 minutes, and delete it afterwards', function () {
@@ -69,11 +71,13 @@ describe('#NAT', function () {
       .then(function (currentMappings) {
         expect(_pmMatch(myMapping, currentMappings)).to.be.true
         return nat.unmapPrivateToPublicPortP(myMapping)
-      }).then(function () {
-      return nat.getPortMappingsP()
-    }).then(function (currentMappings) {
-      expect(_pmMatch(myMapping, currentMappings)).to.be.false
-    })
+      })
+      .then(function () {
+        return nat.getPortMappingsP()
+      })
+      .then(function (currentMappings) {
+        expect(_pmMatch(myMapping, currentMappings)).to.be.false
+      })
   })
 })
 

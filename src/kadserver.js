@@ -7,6 +7,7 @@ var levelup = require('levelup')
 var mkdirp = require('mkdirp')
 var nat = require('./nat')
 var Q = require('q')
+var uuid = require('uuid')
 var winston = require('winston')
 
 inherits(KadServer, EventEmitter)
@@ -31,15 +32,15 @@ KadServer.prototype.activate = function () {
   _createStorageFolderP(self.args)
     .then(function () {
       // port mapping -- get public ip address if not specified in args
-      return _getPublicAddress(self.args)
+      return _getPublicAddressP(self.args)
     })
     .then(function (ip) {
       if (ip) {
         // store IP address
-        self.args.nat.address = ip
+        self.args.nat.public_address = ip
       }
       // port mapping -- map private to public port
-      return _mapPrivateToPublicPort(self.args)
+      return _mapPrivateToPublicPortP(self.args)
     })
     .then(function (pmargs) {
       // store pmargs, needed to unmap ports later on ...
@@ -87,7 +88,7 @@ KadServer.prototype.deactivate = function (cb) {
  * @param {Object} value
  * @param {Integer} ttl
  */
-KadServer.prototype.put = function (key, value, ttl) {
+KadServer.prototype.putP = function (key, value, ttl) {
   var deferred = Q.defer()
   if (!this.ready) {
     var msg = '[kadserver] kad server not ready to store KV tuples.'
@@ -120,7 +121,7 @@ KadServer.prototype.put = function (key, value, ttl) {
  * @param {String} key
  * @return {Object|null} value
  */
-KadServer.prototype.get = function (key) {
+KadServer.prototype.getP = function (key) {
   var deferred = Q.defer()
   if (!this.ready) {
     var msg = '[kadserver] kad server not ready to retrieve values.'
@@ -142,7 +143,7 @@ KadServer.prototype.get = function (key) {
             deferred.resolve(dataObject.value)
           } else {
             deferred.resolve(null)
-            self.del(key)
+            self.delP(key)
           }
         }
       }
@@ -154,7 +155,7 @@ KadServer.prototype.get = function (key) {
 /**
  * Delete KV tuple from dht
  */
-KadServer.prototype.del = function (key) {
+KadServer.prototype.delP = function (key) {
   var deferred = Q.defer()
   if (!this.ready) {
     var msg = '[kadserver] kad server not ready to delete KV tuples.'
@@ -162,9 +163,25 @@ KadServer.prototype.del = function (key) {
     deferred.reject(new Error(msg))
     return deferred.promise
   } else {
-    return this.put(key, null)
+    return this.putP(key, null)
   }
   return deferred.promise
+}
+
+KadServer.prototype.testP = function () {
+  var key = 'test_' + uuid.v4()
+  var value = uuid.v4()
+  var self = this
+  return this.putP(key, value)
+    .then(function () {
+      return self.getP(key)
+    })
+    .then(function (storedValue) {
+      if (storedValue !== value) {
+        throw new Error('Test failure -- stored value != expected value')
+      }
+      return self.delP(key)
+    })
 }
 
 /**
@@ -190,44 +207,59 @@ function _createStorageFolderP (args) {
   return deferred.promise
 }
 
-function _getPublicAddress (args) {
+function _getPublicAddressP (args) {
   var deferred = Q.defer()
   if (!args.nat) {
     winston.debug('[kadserver] node is not located behind NAT device -- no demand to determine public IP address')
     deferred.resolve()
-  } else if (args.nat.address) {
+  } else if (args.nat.public_address) {
     winston.debug('[kadserver] public address is already set')
-    deferred.resolve(args.nat.address)
+    deferred.resolve()
   } else {
     return nat.getPublicGWAddressP()
   }
   return deferred.promise
 }
 
-function _mapPrivateToPublicPort (args) {
+function _mapPrivateToPublicPortP (args) {
   var deferred = Q.defer()
   if (!args.nat) {
     winston.debug('[kadserver] node is not located behind NAT device -- no demand for portmapping')
     deferred.resolve()
   } else {
-    var pmargs = {}
-    pmargs.public = {}
-    pmargs.private = {}
-    pmargs.private.port = args.port
-    pmargs.public.port = args.nat.port
-    pmargs.protocol = 'UDP'
-    pmargs.ttl = 0
-    pmargs.description = 'flunky:dht'
-    return nat.mapPrivateToPublicPortP(pmargs)
+    switch (args.nat.type.toLowerCase()) {
+      case 'manual':
+        // port forwarding is configured manually
+        winston.debug('[kadserver] manual port mapping -- no action needed')
+        deferred.resolve()
+        break
+      case 'upnp':
+        winston.debug('[kadserver] using nat-upnp to open ports on GW')
+        var pmargs = {}
+        pmargs.public = {}
+        pmargs.private = {}
+        pmargs.private.port = args.port
+        pmargs.public.port = args.nat.public_port || args.port
+        pmargs.protocol = 'UDP'
+        pmargs.ttl = 0
+        pmargs.description = 'flunky:dht'
+        return nat.mapPrivateToPublicPortP(pmargs)
+      default:
+        winston.debug('[kadserver] cannot process nat type ' + args.nat.type)
+    }
   }
   return deferred.promise
 }
 
-
-
 function _initKadDhtP (args) {
-  var port = args.nat ? args.nat.port : false || args.port
-  var address = args.nat ? args.nat.address : false || args.address
+  var port, address
+  if (args.nat) {
+    port = args.nat.public_port
+    address = args.nat.public_address
+  }
+  port = port || args.port
+  address = address || args.address
+
   var storage = (typeof args.storage === 'string') ? levelup(args.storage) : args.storage
   winston.debug('[kadserver] creating dht listening at ' + address + ':' + port)
   var deferred = Q.defer()
