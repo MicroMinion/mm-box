@@ -4,7 +4,7 @@
   "seeds": [],
   "storage": "./db",
   "loglevel": {
-    "server": "debug",
-    "kad": 5
+    "server": "info",
+    "kad": 1
   }
 }

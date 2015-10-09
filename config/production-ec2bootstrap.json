@@ -1,0 +1,8 @@
+{
+  "nat": {
+    "type": "manual",
+    "public_address": "54.154.15.84"
+  },
+  "seeds": [],
+  "storage": "./db"
+}

@@ -1,7 +1,6 @@
 {
-  "port": 65533,
   "nat": {
-    "port": 65533
+    "type": "upnp"
   },
   "seeds": [
     {
@@ -9,5 +8,9 @@
       "port": 65535
     }
   ],
-  "storage": "./db"
+  "storage": "./db-nicoj1",
+  "loglevel": {
+    "server": "debug",
+    "kad": 1
+  }
 }

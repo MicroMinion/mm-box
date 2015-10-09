@@ -1,7 +1,6 @@
 {
-  "port": 65535,
   "nat": {
-    "port": 65535
+    "type": "upnp"
   },
   "seeds": [
     {
