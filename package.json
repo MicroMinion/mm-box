@@ -15,7 +15,7 @@
   "dependencies": {
     "config": "",
     "inherits": "",
-    "kad": "../flunky-kad",
+    "kad": "git+ssh://git@bitbucket.org:nodatacenter/flunky-kad.git",
     "levelup": "",
     "leveldown":"",
     "merge": "",
