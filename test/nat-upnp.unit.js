@@ -1,4 +1,5 @@
-var nat = require('../src/nat')
+var ipAddresses = require('../src/ip-addresses')
+var nat = require('../src/nat-upnp')
 var publicIp = require('public-ip')
 var winston = require('winston')
 
@@ -17,7 +18,7 @@ describe('#NAT', function () {
   this.timeout(10000)
 
   before(function (done) {
-    nat.getPublicIpAddressP()
+    ipAddresses.getPublicIpAddressP()
       .then(function (ip) {
         myPublicIpAddress = ip
         done()

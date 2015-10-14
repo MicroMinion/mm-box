@@ -223,7 +223,7 @@ describe('#NAT', function () {
   this.timeout(10000)
 
   before(function (done) {
-    publicIp(function (err, ip) {
+    publicIp(function (error, ip) {
       myPublicIpAddress = ip
 
       storage4 = new FakeStorage('node4')
