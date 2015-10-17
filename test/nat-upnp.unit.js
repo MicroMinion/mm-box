@@ -1,6 +1,5 @@
 var ipAddresses = require('../src/ip-addresses')
 var nat = require('../src/nat-upnp')
-var publicIp = require('public-ip')
 var winston = require('winston')
 
 var chai = require('chai')
@@ -14,7 +13,7 @@ winston.level = 'debug'
 
 var myPublicIpAddress
 
-describe('#NAT', function () {
+describe('#NAT-UPNP', function () {
   this.timeout(10000)
 
   before(function (done) {
