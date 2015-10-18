@@ -29,13 +29,15 @@ describe('#NAT-STUN', function () {
   })
 
   it('should return an active stun datagram socket', function (done) {
-    nat.getStunDgramSocketP()
+    var listeningPort = 44444
+    nat.getStunDgramSocketP(listeningPort)
       .then(function (result) {
         /* test response attributes */
         expect(result).to.have.property('client')
         expect(result).to.have.property('publicAddress')
         expect(result).to.have.property('port')
         expect(result.publicAddress).to.equal(myPublicIpAddress)
+        expect(result.port).to.equal(listeningPort)
 
         /* test communication */
 

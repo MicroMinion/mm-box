@@ -5,12 +5,15 @@ var Q = require('q')
 var winston = require('winston')
 
 // Google STUN server
-var port = 19302
-var host = 'stun.l.google.com'
+var stunPort = 19302
+var stunAddress = 'stun.l.google.com'
 
-function getStunDgramSocketP () {
+function getStunDgramSocketP (port) {
   var deferred = Q.defer()
-  var client = stun.connect(port, host)
+  var client = stun.connect(stunPort, stunAddress)
+  if (port) {
+    client._socket.bind(port)
+  }
   client.on('error', function (error) {
     winston.error('[nat-stun] failure: ' + error)
     deferred.reject(error)
