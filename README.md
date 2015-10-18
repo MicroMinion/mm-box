@@ -1,9 +1,9 @@
-print port mappings
+print UPnP port mappings
 ```
-cd src; node nat-list
+cd scripts; node nat-upnp-list
 ```
 
-remove all nat portmappings matching description regex
+remove all nat UPnP portmappings matching description regex
 ```
-cd src; node nat-clean -d regex
+cd scripts; node nat-upnp-clean -d regex
 ```
