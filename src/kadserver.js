@@ -1,6 +1,7 @@
 module.exports = KadServer
 
 var EventEmitter = require('events').EventEmitter
+var ipAddresses = require('./ip-addresses')
 var inherits = require('inherits')
 var kademlia = require('kad')
 var levelup = require('levelup')
@@ -209,14 +210,25 @@ function _createStorageFolderP (args) {
 
 function _getPublicAddressP (args) {
   var deferred = Q.defer()
+  // case 1: we're not located behind a NAT box
   if (!args.nat) {
     winston.debug('[kadserver] node is not located behind NAT device -- no demand to determine public IP address')
     deferred.resolve()
+  // case 2: public address is known
   } else if (args.nat.public_address) {
     winston.debug('[kadserver] public address is already set')
     deferred.resolve()
-  } else {
+  // case 3: public address can be retrieved from UPnP enabled GW
+  } else if (args.nat.type.toLowerCase() === 'upnp') {
     return nat.getPublicGWAddressP()
+  // case 4: public address will be retrieved while executing STUN -- so let's get this address using some other tricks
+  } else if (args.nat.type.toLowerCase() === 'stun') {
+    return ipAddresses.getPublicIpAddressP()
+  // case 5: no other options left -- giving up
+  } else {
+    var msg = "[kadserver] don't know how to retrieve this node's public IP address ..."
+    winston.error(msg)
+    deferred.reject(new Error(msg))
   }
   return deferred.promise
 }
@@ -231,6 +243,11 @@ function _mapPrivateToPublicPortP (args) {
       case 'manual':
         // port forwarding is configured manually
         winston.debug('[kadserver] manual port mapping -- no action needed')
+        deferred.resolve()
+        break
+      case 'stun':
+        // using UDP+STUN to reach private address
+        winston.debug('[kadserver] STUN based port mapping -- no action needed')
         deferred.resolve()
         break
       case 'upnp':
@@ -261,22 +278,32 @@ function _initKadDhtP (args) {
   address = address || args.address
 
   var storage = (typeof args.storage === 'string') ? levelup(args.storage) : args.storage
-  winston.debug('[kadserver] creating dht listening at ' + address + ':' + port)
-  var deferred = Q.defer()
-  // create dht
-  var dht = kademlia({
+
+  var kadArgs = {
     address: address,
     port: port,
     seeds: args.seeds,
     storage: storage,
     logLevel: args.loglevel.kad
-  })
+  }
+
+  if (args.transport) {
+    kadArgs.transport = args.transport
+  }
+
+  winston.debug('[kadserver] creating dht listening at ' + address + ':' + port)
+  var deferred = Q.defer()
+  // create dht
+  var dht = kademlia(kadArgs)
   dht.address = address
   dht.port = port
+
   // if no seeds, then we're done (this is a bootstrap node)
   if (args.seeds.length === 0) {
     winston.debug('[kadserver] no seeds specified -- this is a bootstrap node')
-    deferred.resolve(dht)
+    dht.on('listening', function () {
+      deferred.resolve(dht)
+    })
   } else {
     // connect to overlay network
     winston.debug('[kadserver] connecting dht instance to seeds ' + JSON.stringify(args.seeds))
@@ -291,5 +318,6 @@ function _initKadDhtP (args) {
       }
     })
   }
+
   return deferred.promise
 }
