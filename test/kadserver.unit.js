@@ -5,6 +5,8 @@ var publicIp = require('public-ip')
 // var ChromeDgramTransport = require('../src/transports/chrome-dgram')
 var FakeStorage = require('./fakestorage')
 var FakeTransport = require('./faketransport')
+var UdpStun = require('../src/transports/udp-stun')
+// var Udp = require('../node_modules/kad/lib/transports/udp')
 var KadServer = require('../src/kadserver')
 
 var myPublicIpAddress
@@ -35,9 +37,9 @@ var value2 = 'pang'
 var value3 = 'pung'
 var ttl = 1
 
-function _createID (data) {
-  return crypto.createHash('sha1').update(data).digest('hex')
-}
+// function _createID (data) {
+//   return crypto.createHash('sha1').update(data).digest('hex')
+// }
 
 function _printStorage123 () {
   console.log('FakeStorage 1: ' + JSON.stringify(storage1.data))
@@ -135,82 +137,76 @@ describe('#localhost', function () {
     node2.activate()
   })
 
-  it('kadserver should write to store', function (done) {
-    node2.putP(key, value1)
+  it('kadserver should write to store', function () {
+    return node2.putP(key, value1)
       .then(function () {
-        expect(storage3.data).to.have.property(_createID(key))
-        expect(storage2.data).to.not.have.property(_createID(key))
-        expect(storage1.data).to.have.property(_createID(key))
-        done()
+        expect(storage3.data).to.have.property(key)
+        expect(storage2.data).to.not.have.property(key)
+        expect(storage1.data).to.have.property(key)
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully write to the DHT. ' + error)
       })
   })
 
-  it('kadserver should read from store', function (done) {
-    node3.getP(key)
+  it('kadserver should read from store', function () {
+    return node3.getP(key)
       .then(function (storedValue) {
         expect(storedValue).to.equal(value1)
-        done()
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully read from the DHT. ' + error)
       })
   })
 
-  it('kadserver should overwrite KV tuple', function (done) {
-    node3.putP(key, value2)
+  it('kadserver should overwrite KV tuple', function () {
+    return node3.putP(key, value2)
       .then(function () {
         return node2.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.not.equal(value1)
         expect(storedValue).to.equal(value2)
-        done()
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully overwrite a KV tuple in the DHT. ' + error)
       })
   })
 
-  it('kadserver should delete from store', function (done) {
-    node2.delP(key)
+  it('kadserver should delete from store', function () {
+    return node2.delP(key)
       .then(function () {
         return node3.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.be.null
-        done()
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully delete from the DHT. ' + error)
       })
   })
 
-  it('kadserver should write KV with TTL to store', function (done) {
-    node2.putP(key, value3, ttl)
+  it('kadserver should write KV with TTL to store', function () {
+    return node2.putP(key, value3, ttl)
       .then(function () {
-        var storedData = JSON.parse(storage3.data[_createID(key)]).value
+        var storedData = JSON.parse(storage3.data[key]).value
         expect(storedData).to.have.property('expires')
         expect(storedData.expires).to.not.be.null
         return node3.getP(key)
       })
       .then(function (storedValue) {
         expect(storedValue).to.not.be.null
-        done()
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully write KV tuple with TTL to the DHT. ' + error)
       })
   })
 
-  it('kadserver should delete value after TTL expires', function (done) {
+  it('kadserver should delete value after TTL expires', function () {
     setTimeout(function () {
-      node3.getP(key)
+      return node3.getP(key)
         .then(function (storedValue) {
           expect(storedValue).to.be.null
-          done()
         })
         .catch(function (error) {
           assert(false, 'Unable to remove expired data from the DHT. ' + error)
@@ -219,7 +215,7 @@ describe('#localhost', function () {
   })
 })
 
-describe('#NAT', function () {
+describe('#NAT UPnP', function () {
   this.timeout(10000)
 
   before(function (done) {
@@ -244,7 +240,7 @@ describe('#NAT', function () {
       node5opts = {
         address: '0.0.0.0',
         port: 65531,
-        public: {
+        nat: {
           type: 'upnp'
         },
         seeds: [{
@@ -258,7 +254,7 @@ describe('#NAT', function () {
       node6opts = {
         address: '0.0.0.0',
         port: 65530,
-        public: {
+        nat: {
           type: 'upnp'
         },
         seeds: [{
@@ -313,24 +309,22 @@ describe('#NAT', function () {
     node5.activate()
   })
 
-  it('kadserver should write to NATed overlay network', function (done) {
-    node5.putP(key, value1)
+  it('kadserver should write to NATed overlay network', function () {
+    return node5.putP(key, value1)
       .then(function () {
-        expect(storage6.data).to.have.property(_createID(key))
-        expect(storage5.data).to.not.have.property(_createID(key))
-        expect(storage4.data).to.have.property(_createID(key))
-        done()
+        expect(storage6.data).to.have.property(key)
+        expect(storage5.data).to.not.have.property(key)
+        expect(storage4.data).to.have.property(key)
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully write to the DHT. ' + error)
       })
   })
 
-  it('kadserver should read from NATed overlay network', function (done) {
-    node6.getP(key)
+  it('kadserver should read from NATed overlay network', function () {
+    return node6.getP(key)
       .then(function (storedValue) {
         expect(storedValue).to.equal(value1)
-        done()
       })
       .catch(function (error) {
         assert(false, 'Unable to succesfully read from the DHT. ' + error)
@@ -338,62 +332,100 @@ describe('#NAT', function () {
   })
 })
 
-describe('#fake transport', function () {
-  before(function () {
-    storage7 = new FakeStorage('node7')
-    storage8 = new FakeStorage('node8')
-    storage9 = new FakeStorage('node9')
+describe('#NAT STUN', function () {
+  this.timeout(10000)
 
-    node7opts = {
-      address: '127.0.0.1',
-      port: 65529,
-      seeds: [],
-      storage: storage7,
-      transport: FakeTransport,
-      loglevel: loglevel
-    }
+  before(function (done) {
+    publicIp(function (error, ip) {
+      myPublicIpAddress = ip
 
-    node8opts = {
-      address: '127.0.0.1',
-      port: 65528,
-      seeds: [{
-        address: '127.0.0.1',
-        port: 65529
-      }],
-      storage: storage8,
-      transport: FakeTransport,
-      loglevel: loglevel
-    }
+      storage7 = new FakeStorage('node7')
+      storage8 = new FakeStorage('node8')
+      storage9 = new FakeStorage('node9')
 
-    node9opts = {
-      address: '127.0.0.1',
-      port: 65527,
-      seeds: [{
-        address: '127.0.0.1',
-        port: 65529
-      }],
-      storage: storage9,
-      transport: FakeTransport,
-      loglevel: loglevel
-    }
+      node7opts = {
+        address: '0.0.0.0',
+        port: 65529,
+        nat: {
+          type: 'stun'
+        },
+        seeds: [],
+        storage: storage7,
+        transport: UdpStun,
+        loglevel: loglevel
+      }
 
-    node7 = new KadServer(node7opts)
-    node8 = new KadServer(node8opts)
-    node9 = new KadServer(node9opts)
+      node8opts = {
+        address: '0.0.0.0',
+        port: 65528,
+        nat: {
+          type: 'stun'
+        },
+        seeds: [{
+          address: myPublicIpAddress,
+          port: 65529
+        }],
+        storage: storage8,
+        transport: UdpStun,
+        loglevel: loglevel
+      }
+
+      node9opts = {
+        address: '0.0.0.0',
+        port: 65527,
+        nat: {
+          type: 'stun'
+        },
+        seeds: [{
+          address: myPublicIpAddress,
+          port: 65529
+        }],
+        storage: storage9,
+        transport: UdpStun,
+        loglevel: loglevel
+      }
+
+      node7 = new KadServer(node7opts)
+      node8 = new KadServer(node8opts)
+      node9 = new KadServer(node9opts)
+
+      done()
+    })
   })
 
-  it('kadserver should launch bootstrap server using fake transport connector', function (done) {
-    done()
-    //   node7.on('ready', function() {
-    //     assert(false, 'Ready event should not be fired since there are no seeds specified.')
-    //   })
-    //   node7.on('error', function() {
-    //     assert(false, 'Error while activating node 7: ' + error)
-    //   })
-    //   node7.on('no peers', function() {
-    //     //expect(node7.dht.address).to.equal(myPublicIpAddress)
-    //     done()
-    //   })
+  it('kadserver should launch bootstrap server using UDP-STUN transport connector', function (done) {
+    node7.on('ready', function () {
+      assert(false, 'Ready event should not be fired since there are no seeds specified.')
+    })
+    node7.on('error', function () {
+      assert(false, 'Error while activating node 7: ' + error)
+    })
+    node7.on('no peers', function () {
+      expect(node7.dht.address).to.equal(myPublicIpAddress)
+      done()
+    })
     node7.activate()
+  })
+
+  // it('kadserver should launch NATed overlay network', function (done) {
+  //   node8.on('no peers', function () {
+  //     assert(false, 'Node 8 could not connect to peer ' + JSON.stringify(node8opts.seeds))
+  //   })
+  //   node8.on('error', function (error) {
+  //     assert(false, 'Error while activating node 8: ' + error)
+  //   })
+  //   node8.on('ready', function () {
+  //     node9.on('no peers', function () {
+  //       assert(false, 'Node 9 could not connect to peers ' + JSON.stringify(node9opts.seeds))
+  //     })
+  //     node9.on('error', function (error) {
+  //       assert(false, 'Error while activating node 9: ' + error)
+  //     })
+  //     node9.on('ready', function () {
+  //       done()
+  //     })
+  //     node9.activate()
+  //   })
+  //   node8.activate()
   })
 })
