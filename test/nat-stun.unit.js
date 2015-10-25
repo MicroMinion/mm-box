@@ -1,3 +1,4 @@
+var dgram = require('dgram')
 var ipAddresses = require('../src/ip-addresses')
 var nat = require('../src/nat-stun')
 var winston = require('winston')
@@ -13,7 +14,7 @@ winston.level = 'debug'
 
 var myPublicIpAddress
 
-describe('#NAT', function () {
+describe('#NAT-STUN', function () {
   this.timeout(10000)
 
   before(function (done) {
@@ -27,15 +28,44 @@ describe('#NAT', function () {
       })
   })
 
-  it('should return an active stun datagram socket', function () {
-    return nat.getStunDgramSocketP()
+  it('should return an active stun datagram socket', function (done) {
+    nat.getStunDgramSocketP()
       .then(function (result) {
+        /* test response attributes */
         expect(result).to.have.property('client')
         expect(result).to.have.property('publicAddress')
         expect(result).to.have.property('port')
         expect(result.publicAddress).to.equal(myPublicIpAddress)
-      })
 
-  //    .should.eventually.equal(myPublicIpAddress)
+        /* test communication */
+
+        // test setup
+        var sendingSocket = dgram.createSocket('udp4')
+        var receivingSocket = result.client
+        var testMessageContent = 'stun test'
+        var testMessage = new Buffer(testMessageContent)
+        var testRuns = 5
+        var messagesReceived = 0
+        // subscribe to incoming messages
+        receivingSocket.on('message', function (msg, rinfo) {
+          expect(msg.toString()).to.equal(testMessageContent)
+          winston.debug('[node-stun-test] receiving test message ' + msg)
+          messagesReceived++
+          if (messagesReceived === testRuns) {
+            receivingSocket.close()
+            sendingSocket.close()
+            done()
+          }
+        })
+        // send test message n times
+        for (var i = 0; i < testRuns; i++) {
+          sendingSocket.send(testMessage, 0, testMessage.length, result.port, result.publicAddress, function (error) {
+            if (error) {
+              done(error)
+            }
+            winston.debug('[node-stun-test] test message sent to ' + result.publicAddress + ':' + result.port)
+          })
+        }
+      })
   })
 })
