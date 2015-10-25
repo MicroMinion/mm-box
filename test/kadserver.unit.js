@@ -407,25 +407,47 @@ describe('#NAT STUN', function () {
     node7.activate()
   })
 
-  // it('kadserver should launch NATed overlay network', function (done) {
-  //   node8.on('no peers', function () {
-  //     assert(false, 'Node 8 could not connect to peer ' + JSON.stringify(node8opts.seeds))
-  //   })
-  //   node8.on('error', function (error) {
-  //     assert(false, 'Error while activating node 8: ' + error)
-  //   })
-  //   node8.on('ready', function () {
-  //     node9.on('no peers', function () {
-  //       assert(false, 'Node 9 could not connect to peers ' + JSON.stringify(node9opts.seeds))
-  //     })
-  //     node9.on('error', function (error) {
-  //       assert(false, 'Error while activating node 9: ' + error)
-  //     })
-  //     node9.on('ready', function () {
-  //       done()
-  //     })
-  //     node9.activate()
-  //   })
-  //   node8.activate()
-  // })
+  it('kadserver should launch STUNed overlay network', function (done) {
+    node8.on('no peers', function () {
+      assert(false, 'Node 8 could not connect to peer ' + JSON.stringify(node8opts.seeds))
+    })
+    node8.on('error', function (error) {
+      assert(false, 'Error while activating node 8: ' + error)
+    })
+    node8.on('ready', function () {
+      node9.on('no peers', function () {
+        assert(false, 'Node 9 could not connect to peers ' + JSON.stringify(node9opts.seeds))
+      })
+      node9.on('error', function (error) {
+        assert(false, 'Error while activating node 9: ' + error)
+      })
+      node9.on('ready', function () {
+        done()
+      })
+      node9.activate()
+    })
+    node8.activate()
+  })
+
+  it('kadserver should write to STUNed overlay network', function () {
+    return node8.putP(key, value1)
+      .then(function () {
+        expect(storage7.data).to.have.property(key)
+        expect(storage8.data).to.not.have.property(key)
+        expect(storage9.data).to.have.property(key)
+      })
+      .catch(function (error) {
+        assert(false, 'Unable to succesfully write to the DHT. ' + error)
+      })
+  })
+
+  it('kadserver should read from STUNed overlay network', function () {
+    return node9.getP(key)
+      .then(function (storedValue) {
+        expect(storedValue).to.equal(value1)
+      })
+      .catch(function (error) {
+        assert(false, 'Unable to succesfully read from the DHT. ' + error)
+      })
+  })
 })

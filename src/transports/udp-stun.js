@@ -9,6 +9,7 @@ var inherits = require('util').inherits
 // var dgram = require('dgram')
 var nat = require('../nat-stun')
 var RPC = require('../../node_modules/kad/lib/rpc')
+var winston = require('winston')
 
 inherits(UDPSTUNTransport, RPC)
 
@@ -21,6 +22,7 @@ function UDPSTUNTransport (contact, options) {
   if (!(this instanceof UDPSTUNTransport)) {
     return new UDPSTUNTransport(contact, options)
   }
+  var socketMessageHandler = this._handleMessage.bind(this);
   RPC.call(this, contact, options)
   var self = this
 
@@ -28,9 +30,9 @@ function UDPSTUNTransport (contact, options) {
     .then(function (result) {
       var i = 0
       self._socket = result.client
+      self._socket.on('message', socketMessageHandler);
       self._port = result.port
       self._publicAddress = result.publicAddress
-      self._handleMessage.bind(self)
       self.emit('ready')
     })
     .catch(function (error) {
@@ -74,6 +76,7 @@ UDPSTUNTransport.prototype._createContact = function (options) {
 * @param {Contact} contact
 */
 UDPSTUNTransport.prototype._send = function (data, contact) {
+  winston.debug('[udp-stun transport] send message to ' + JSON.stringify(contact))
   this._socket.send(data, 0, data.length, contact.port, contact.address)
 }
 
