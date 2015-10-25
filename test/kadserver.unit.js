@@ -229,6 +229,7 @@ describe('#NAT UPnP', function () {
       node4opts = {
         address: '0.0.0.0',
         port: 65532,
+        transport: 'tcp',
         nat: {
           type: 'upnp'
         },
@@ -240,6 +241,7 @@ describe('#NAT UPnP', function () {
       node5opts = {
         address: '0.0.0.0',
         port: 65531,
+        transport: 'tcp',
         nat: {
           type: 'upnp'
         },
@@ -254,6 +256,7 @@ describe('#NAT UPnP', function () {
       node6opts = {
         address: '0.0.0.0',
         port: 65530,
+        transport: 'tcp',
         nat: {
           type: 'upnp'
         },
@@ -351,7 +354,6 @@ describe('#NAT STUN', function () {
         },
         seeds: [],
         storage: storage7,
-        transport: UdpStun,
         loglevel: loglevel
       }
 
@@ -366,7 +368,6 @@ describe('#NAT STUN', function () {
           port: 65529
         }],
         storage: storage8,
-        transport: UdpStun,
         loglevel: loglevel
       }
 
@@ -381,7 +382,6 @@ describe('#NAT STUN', function () {
           port: 65529
         }],
         storage: storage9,
-        transport: UdpStun,
         loglevel: loglevel
       }
 
@@ -427,5 +427,5 @@ describe('#NAT STUN', function () {
   //     node9.activate()
   //   })
   //   node8.activate()
-  })
+  // })
 })

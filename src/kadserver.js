@@ -8,6 +8,7 @@ var levelup = require('levelup')
 var mkdirp = require('mkdirp')
 var nat = require('./nat-upnp')
 var Q = require('q')
+var UdpStun = require('./transports/udp-stun')
 var uuid = require('uuid')
 var winston = require('winston')
 
@@ -20,7 +21,7 @@ inherits(KadServer, EventEmitter)
 function KadServer (args) {
   if (!(this instanceof KadServer)) return new KadServer(args)
   this.args = args
-  winston.level = args.loglevel.server
+  winston.level = this.args.loglevel.server
   winston.info('[kadserver] kad sever configuration = ' + JSON.stringify(this.args))
 }
 
@@ -188,6 +189,19 @@ KadServer.prototype.testP = function () {
 /**
  * helper functions
  */
+
+function _getTransportModule (args) {
+  if (args.transport && args.transport.toLowerCase() === 'tcp') {
+    return kademlia.transports.TCP
+  } else if (args.transport && args.transport.toLowerCase() === 'webrtc') {
+    return kademlia.transports.WebRTC
+  } else if (args.nat && args.nat.type.toLowerCase() === 'stun') {
+    return UdpStun
+  } else {
+    return kademlia.transports.UDP
+  }
+}
+
 function _createStorageFolderP (args) {
   var deferred = Q.defer()
   if (typeof args.storage !== 'string') {
@@ -257,7 +271,7 @@ function _mapPrivateToPublicPortP (args) {
         pmargs.private = {}
         pmargs.private.port = args.port
         pmargs.public.port = args.nat.public_port || args.port
-        pmargs.protocol = 'UDP'
+        pmargs.protocol = args.transport || 'UDP'
         pmargs.ttl = 0
         pmargs.description = 'flunky:dht'
         return nat.mapPrivateToPublicPortP(pmargs)
@@ -287,9 +301,7 @@ function _initKadDhtP (args) {
     logLevel: args.loglevel.kad
   }
 
-  if (args.transport) {
-    kadArgs.transport = args.transport
-  }
+  kadArgs.transport = _getTransportModule(args)
 
   winston.debug('[kadserver] creating dht listening at ' + address + ':' + port)
   var deferred = Q.defer()
