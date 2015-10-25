@@ -1,0 +1,18 @@
+{
+  "address": "0.0.0.0",
+  "port": 65499,
+  "nat": {
+    "type": "stun"
+  },
+  "seeds": [
+    {
+      "address": "94.227.154.171",
+      "port": 65500
+    }
+  ],
+  "storage": "./db-stun-2",
+  "loglevel": {
+    "server": "debug",
+    "kad": 1
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "address": "0.0.0.0",
+  "port": 65500,
+  "nat": {
+    "type": "stun"
+  },
+  "seeds": [],
+  "storage": "./db-stun-1",
+  "loglevel": {
+    "server": "debug",
+    "kad": 1
+  }
+}
