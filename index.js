@@ -14,6 +14,6 @@ dht.on('ready', function () {
     })
 })
 dht.on('no peers', function () {
-  console.log('no peers, running in bootstrap mpde')
+  console.log('no peers, running in bootstrap mode')
 })
 dht.activate()
