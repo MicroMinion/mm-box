@@ -3,9 +3,7 @@
 var _ = require('lodash')
 var Q = require('q')
 var useragent = require('useragent')
-var qrImage = require('qr-image')
-var SyncEngine = require('../util/mmds/index.js')
-var debug = require('debug')('flunky-platform:services:profile')
+var debug = require('debug')('flunky-dht:services:profile')
 var nacl = require('tweetnacl')
 var crypto = require('crypto')
 
@@ -20,36 +18,15 @@ var PUBLISH_INTERVAL = 1000 * 60 * 5
 
 var Profile = function (options) {
   var profile = this
-  this.messaging = options.messaging
+  this.messaging = options.platform.messaging
   this.storage = options.storage
   this.profile = {
-    info: {
-      name: '',
-      device: '',
-      accounts: [],
-      canScan: false
-    },
     publicKey: null,
     privateKey: null,
-    authenticated: false
   }
   this.loadProfile()
   this.collection = {}
   this.collection['profile'] = this.profile.info
-  this.syncEngine = new SyncEngine(options.messaging, 'profile', 'id', this.collection, options.storage)
-  this.syncEngine.on('processEvent', function (action, document) {
-    if (action === 'update') {
-      if (document.name) {
-        profile.profile.info.name = document.name
-        profile.collection['profile'].name = document.name
-      }
-      if (document.accounts) {
-        profile.profile.info.accounts = document.accounts
-        profile.collection['profile'].accounts = document.accounts
-      }
-      profile.update(true)
-    }
-  })
   this.messaging.on('self.profile.newCodeNeeded', function (topic, publicKey, data) {
     profile.setCode()
   })
@@ -86,19 +63,11 @@ var Profile = function (options) {
   }, PUBLISH_INTERVAL)
 }
 
-Profile.prototype.update = function (regenerateQr) {
-  if (regenerateQr) {
-    this.updateQrCodeText()
-  }
+Profile.prototype.update = function () {
   if (this.profile.privateKey) {
     this.messaging.send('profile.update', 'local', this.profile)
   }
   this.storage.put('profile', JSON.stringify(this.profile))
-}
-
-Profile.prototype.setCode = function () {
-  this.profile.code = nacl.util.encodeBase64(nacl.randomBytes(20))
-  this.update(true)
 }
 
 Profile.prototype.loadProfile = function () {
@@ -150,70 +119,6 @@ Profile.prototype.setKeys = function () {
     this.profile.privateKey = nacl.util.encodeBase64(keypair.secretKey)
     this.update(true)
   }
-}
-
-Profile.prototype.setScan = function () {
-  var canScan = false
-  try {
-    if (!_.isUndefined(cloudSky.zBar.scan)) {
-      canScan = true
-    } else {
-      canScan = false
-    }
-  } catch (e) {
-    canScan = false
-  }
-  if (canScan !== this.profile.info.canScan) {
-    this.profile.info.canScan = canScan
-    this.update(true)
-  }
-}
-
-Profile.prototype.setType = function (type, application) {
-  if (type !== this.profile.info.type) {
-    this.profile.info.type = type
-    this.update(true)
-  }
-  if (application !== this.profile.info.application) {
-    this.profile.info.application = application
-    this.update(true)
-  }
-}
-
-Profile.prototype.setDeviceName = function () {
-  if (!this.profile.info.device || this.profile.info.device === '') {
-    if (!_.isUndefined(window.cordova) && !_.isUndefined(window.device)) {
-      this.profile.info.device = window.device.platform + ' ' + window.device.version + ' on ' + window.device.model
-      this.update(true)
-    } else if (!_.isUndefined(window.navigator) && !_.isUndefined(window.navigator.userAgent)) {
-      var agent = useragent.parse(window.navigator.userAgent)
-      this.profile.info.device = agent.os.toString().replace(' 0.0.0', '')
-      if (agent.device.toString() !== 'Other 0.0.0') {
-        this.profile.info.device += ' on ' + agent.device.toString()
-      }
-      this.profile.info.device += ' (' + agent.toAgent() + ')'
-      this.update(true)
-    }
-  }
-}
-
-Profile.prototype.updateAuthenticationState = function () {
-  var authenticated = (this.profile.privateKey !== null) && (this.profile.info.accounts.length > 0)
-  if (authenticated !== this.profile.authenticated) {
-    this.profile.authenticated = authenticated
-    this.update(false)
-  }
-}
-
-Profile.prototype.updateQrCodeText = function () {
-  var qrCodeText = JSON.stringify({
-    code: this.profile.code,
-    publicKey: this.profile.publicKey,
-    info: this.profile.info
-  })
-  var pngBuffer = qrImage.imageSync(qrCodeText, {type: 'png', margin: 1})
-  var dataURI = 'data:image/png;base64,' + pngBuffer.toString('base64')
-  this.profile.qrCodeText = dataURI
 }
 
 module.exports = Profile
