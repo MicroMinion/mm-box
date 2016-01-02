@@ -333,3 +333,30 @@ function _initKadDhtP (args) {
 
   return deferred.promise
 }
+
+var Platform = require('flunky-platform')
+var services = require('./services/index.js')
+
+var StandaloneDHT = function () {
+  this.platform = new Platform({
+    storage: null
+  })
+}
+
+StandaloneDHT.prototype._initializeServices = function () {
+  this.profile = new services.Profile({
+    platform: this.platform,
+    storage: null
+  })
+  this.mdns = new services.mDNS({
+    platform: this.platform,
+    storage: null
+  })
+  this.dht = new services.Kademlia({
+    platform: this.platform,
+    storage: null,
+    seeds: null
+  })
+}
+
+module.exports = StandaloneDHT
