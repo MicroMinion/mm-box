@@ -18,9 +18,10 @@
   "dependencies": {
     "config": "",
     "inherits": "",
-    "kad": "git://github.com/nicojanssens/kad.git",
+    "kad": "",
+    "leveldown": "",
     "levelup": "",
-    "leveldown":"",
+    "mdns-js": "^0.4.0",
     "merge": "",
     "minimist": "",
     "mkdirp": "",

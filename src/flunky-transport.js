@@ -1,4 +1,4 @@
-var debugTransport = require('debug')('flunky-platform:services:kademlia:transport')
+var debugTransport = require('debug')('flunky-dht:flunky-transport')
 
 /* KADEMLIA CONTACT */
 
@@ -52,3 +52,5 @@ FlunkyTransport.prototype._send = function (data, contact) {
 FlunkyTransport.prototype._close = function () {}
 
 inherits(FlunkyTransport, kademlia.RPC)
+
+module.exports = FlunkyTransport

@@ -1,8 +1,8 @@
 var config = require('config')
-var KadServer = require('./src/kadserver')
+var StandaloneDHT = require('../src/standalone.js')
 var winston = require('winston')
 
-var dht = KadServer(config)
+var dht = StandaloneDHT(config)
 
 dht.on('ready', function () {
   dht.testP()
@@ -16,4 +16,4 @@ dht.on('ready', function () {
 dht.on('no peers', function () {
   console.log('no peers, running in bootstrap mode')
 })
-dht.activate()
+//dht.activate()

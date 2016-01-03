@@ -2,7 +2,6 @@
 
 var _ = require('lodash')
 var Q = require('q')
-var useragent = require('useragent')
 var debug = require('debug')('flunky-dht:services:profile')
 var nacl = require('tweetnacl')
 var crypto = require('crypto')

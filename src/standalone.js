@@ -1,34 +1,51 @@
-module.exports = KadServer
-
 var EventEmitter = require('events').EventEmitter
-var ipAddresses = require('./ip-addresses')
 var inherits = require('inherits')
-var kademlia = require('kad')
 var levelup = require('levelup')
 var mkdirp = require('mkdirp')
-var nat = require('./nat-upnp')
 var Q = require('q')
-var UdpStun = require('./transports/udp-stun')
 var uuid = require('uuid')
 var winston = require('winston')
-
-inherits(KadServer, EventEmitter)
+var Platform = require('flunky-platform')
+var services = require('./services/index.js')
 
 /**
- * Create KAD server
+ * Create Standalone DHT node
  * @param {Object} args
  */
-function KadServer (args) {
-  if (!(this instanceof KadServer)) return new KadServer(args)
+function StandaloneDHT (args) {
+  if (!(this instanceof StandaloneDHT)) return new StandaloneDHT(args)
   this.args = args
   winston.level = this.args.loglevel.server
   winston.info('[kadserver] kad sever configuration = ' + JSON.stringify(this.args))
+  this.platform = new Platform({
+    storage: null
+  })
+  EventEmitter.call(this)
+  this._initializeServices()
+}
+
+inherits(StandaloneDHT, EventEmitter)
+
+StandaloneDHT.prototype._initializeServices = function () {
+  this.profile = new services.Profile({
+    platform: this.platform,
+    storage: null
+  })
+  this.mdns = new services.mDNS({
+    platform: this.platform,
+    storage: null
+  })
+  this.dht = new services.Kademlia({
+    platform: this.platform,
+    storage: null,
+    seeds: null
+  })
 }
 
 /**
  * Activate KAD server
  */
-KadServer.prototype.activate = function () {
+StandaloneDHT.prototype.activate = function () {
   var self = this
   // create storage folder (if missing)
   _createStorageFolderP(self.args)
@@ -69,139 +86,6 @@ KadServer.prototype.activate = function () {
     })
 }
 
-/** Deactivate KAD server
- */
-KadServer.prototype.deactivate = function (cb) {
-  var self = this
-  // port unmapping
-  nat.unmapPrivateToPublicPort(self.pmargs)
-    .then(function () {
-      cb()
-    })
-    .catch(function (error) {
-      winston.error('[kadserver] deactivation of Kad node failed. ' + error)
-      cb(error)
-    })
-}
-
-/**
- * Put KV tuple into dht
- * @param {String} key
- * @param {Object} value
- * @param {Integer} ttl
- */
-KadServer.prototype.putP = function (key, value, ttl) {
-  var deferred = Q.defer()
-  if (!this.ready) {
-    var msg = '[kadserver] kad server not ready to store KV tuples.'
-    winston.error(msg)
-    deferred.reject(new Error(msg))
-  } else {
-    var dataObject = {}
-    dataObject.value = value
-    if (ttl) {
-      var now = new Date()
-      var expires = now.getTime() + (1000 * ttl)
-      dataObject.expires = expires
-    }
-    winston.debug('[kadserver] kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].')
-    this.dht.put(key, dataObject, function (error) {
-      if (error) {
-        winston.error('[kadserver] kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error)
-        deferred.reject(error)
-      } else {
-        winston.debug('[kadserver] kad server stored KV tuple.')
-        deferred.resolve()
-      }
-    })
-  }
-  return deferred.promise
-}
-
-/**
- * Get value from dht
- * @param {String} key
- * @return {Object|null} value
- */
-KadServer.prototype.getP = function (key) {
-  var deferred = Q.defer()
-  if (!this.ready) {
-    var msg = '[kadserver] kad server not ready to retrieve values.'
-    winston.error(msg)
-    deferred.reject(new Error(msg))
-  } else {
-    var self = this
-    this.dht.get(key, function (error, dataObject) {
-      if (error) {
-        winston.error('[kadserver] kad server failed retrieving value for ' + key + '. ' + error)
-        deferred.reject(error)
-      } else {
-        var expires = dataObject.expires
-        if (!expires) {
-          deferred.resolve(dataObject.value)
-        } else {
-          var now = new Date()
-          if (now.getTime() < expires) {
-            deferred.resolve(dataObject.value)
-          } else {
-            deferred.resolve(null)
-            self.delP(key)
-          }
-        }
-      }
-    })
-  }
-  return deferred.promise
-}
-
-/**
- * Delete KV tuple from dht
- */
-KadServer.prototype.delP = function (key) {
-  var deferred = Q.defer()
-  if (!this.ready) {
-    var msg = '[kadserver] kad server not ready to delete KV tuples.'
-    winston.error(msg)
-    deferred.reject(new Error(msg))
-    return deferred.promise
-  } else {
-    return this.putP(key, null)
-  }
-  return deferred.promise
-}
-
-KadServer.prototype.testP = function () {
-  var key = 'test_' + uuid.v4()
-  var value = uuid.v4()
-  var self = this
-  return this.putP(key, value)
-    .then(function () {
-      return self.getP(key)
-    })
-    .then(function (storedValue) {
-      if (storedValue !== value) {
-        throw new Error('Test failure -- stored value != expected value')
-      }
-      return self.delP(key)
-    })
-}
-
-/**
- * helper functions
- */
-
-function _getTransportModule (args) {
-  if (args.transport && args.transport.toLowerCase() === 'tcp') {
-    return kademlia.transports.TCP
-  } else if (args.transport && args.transport.toLowerCase() === 'webrtc') {
-    return kademlia.transports.WebRTC
-  } else if (args.nat && args.nat.type.toLowerCase() === 'stun') {
-    return UdpStun
-  } else {
-    return kademlia.transports.UDP
-  }
-}
-
 function _createStorageFolderP (args) {
   var deferred = Q.defer()
   if (typeof args.storage !== 'string') {
@@ -218,66 +102,6 @@ function _createStorageFolderP (args) {
         deferred.resolve()
       }
     })
-  }
-  return deferred.promise
-}
-
-function _getPublicAddressP (args) {
-  var deferred = Q.defer()
-  // case 1: we're not located behind a NAT box
-  if (!args.nat) {
-    winston.debug('[kadserver] node is not located behind NAT device -- no demand to determine public IP address')
-    deferred.resolve()
-  // case 2: public address is known
-  } else if (args.nat.public_address) {
-    winston.debug('[kadserver] public address is already set')
-    deferred.resolve()
-  // case 3: public address can be retrieved from UPnP enabled GW
-  } else if (args.nat.type.toLowerCase() === 'upnp') {
-    return nat.getPublicGWAddressP()
-  // case 4: public address will be retrieved while executing STUN -- so let's get this address using some other tricks
-  } else if (args.nat.type.toLowerCase() === 'stun') {
-    return ipAddresses.getPublicIpAddressP()
-  // case 5: no other options left -- giving up
-  } else {
-    var msg = "[kadserver] don't know how to retrieve this node's public IP address ..."
-    winston.error(msg)
-    deferred.reject(new Error(msg))
-  }
-  return deferred.promise
-}
-
-function _mapPrivateToPublicPortP (args) {
-  var deferred = Q.defer()
-  if (!args.nat) {
-    winston.debug('[kadserver] node is not located behind NAT device -- no demand for portmapping')
-    deferred.resolve()
-  } else {
-    switch (args.nat.type.toLowerCase()) {
-      case 'manual':
-        // port forwarding is configured manually
-        winston.debug('[kadserver] manual port mapping -- no action needed')
-        deferred.resolve()
-        break
-      case 'stun':
-        // using UDP+STUN to reach private address
-        winston.debug('[kadserver] STUN based port mapping -- no action needed')
-        deferred.resolve()
-        break
-      case 'upnp':
-        winston.debug('[kadserver] using nat-upnp to open ports on GW')
-        var pmargs = {}
-        pmargs.public = {}
-        pmargs.private = {}
-        pmargs.private.port = args.port
-        pmargs.public.port = args.nat.public_port || args.port
-        pmargs.protocol = args.transport || 'UDP'
-        pmargs.ttl = 0
-        pmargs.description = 'flunky:dht'
-        return nat.mapPrivateToPublicPortP(pmargs)
-      default:
-        winston.debug('[kadserver] cannot process nat type ' + args.nat.type)
-    }
   }
   return deferred.promise
 }
@@ -332,31 +156,6 @@ function _initKadDhtP (args) {
   }
 
   return deferred.promise
-}
-
-var Platform = require('flunky-platform')
-var services = require('./services/index.js')
-
-var StandaloneDHT = function () {
-  this.platform = new Platform({
-    storage: null
-  })
-}
-
-StandaloneDHT.prototype._initializeServices = function () {
-  this.profile = new services.Profile({
-    platform: this.platform,
-    storage: null
-  })
-  this.mdns = new services.mDNS({
-    platform: this.platform,
-    storage: null
-  })
-  this.dht = new services.Kademlia({
-    platform: this.platform,
-    storage: null,
-    seeds: null
-  })
 }
 
 module.exports = StandaloneDHT

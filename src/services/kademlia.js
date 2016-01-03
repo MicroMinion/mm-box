@@ -89,16 +89,109 @@ KademliaService.prototype.put = function (topic, publicKey, data) {
   }
 }
 
-KademliaService.prototype._setupSeeds = function () {
-  debug('_setupSeeds')
-  var self = this
-  _.forEach(seeds, function (connectionInfo, publicKey) {
-    this.messaging.send('messaging.connectionInfo', 'local', connectionInfo)
-    setImmediate(function () {
-      self.dht.connect({publicKey: publicKey, connectionInfo: connectionInfo})
-
-    })
-  }, this)
+/**
+ * Put KV tuple into dht
+ * @param {String} key
+ * @param {Object} value
+ * @param {Integer} ttl
+ */
+/*
+KadServer.prototype.putP = function (key, value, ttl) {
+ var deferred = Q.defer()
+ if (!this.ready) {
+   var msg = '[kadserver] kad server not ready to store KV tuples.'
+   winston.error(msg)
+   deferred.reject(new Error(msg))
+ } else {
+   var dataObject = {}
+   dataObject.value = value
+   if (ttl) {
+     var now = new Date()
+     var expires = now.getTime() + (1000 * ttl)
+     dataObject.expires = expires
+   }
+   winston.debug('[kadserver] kad server storing [' + key + ',' + JSON.stringify(dataObject) + '].')
+   this.dht.put(key, dataObject, function (error) {
+     if (error) {
+       winston.error('[kadserver] kad server failed storing [' + key + ',' + dataObject + ',' + ttl + ']. ' + error)
+       deferred.reject(error)
+     } else {
+       winston.debug('[kadserver] kad server stored KV tuple.')
+       deferred.resolve()
+     }
+   })
+ }
+ return deferred.promise
 }
+*/
+
+/**
+ * Get value from dht
+ * @param {String} key
+ * @return {Object|null} value
+ */
+/*
+KadServer.prototype.getP = function (key) {
+ var deferred = Q.defer()
+ if (!this.ready) {
+   var msg = '[kadserver] kad server not ready to retrieve values.'
+   winston.error(msg)
+   deferred.reject(new Error(msg))
+ } else {
+   var self = this
+   this.dht.get(key, function (error, dataObject) {
+     if (error) {
+       winston.error('[kadserver] kad server failed retrieving value for ' + key + '. ' + error)
+       deferred.reject(error)
+     } else {
+       var expires = dataObject.expires
+       if (!expires) {
+         deferred.resolve(dataObject.value)
+       } else {
+         var now = new Date()
+         if (now.getTime() < expires) {
+           deferred.resolve(dataObject.value)
+         } else {
+           deferred.resolve(null)
+           self.delP(key)
+         }
+       }
+     }
+   })
+ }
+ return deferred.promise
+}
+*/
+
+/**
+ * Delete KV tuple from dht
+ */
+/*
+KadServer.prototype.delP = function (key) {
+ var deferred = Q.defer()
+ if (!this.ready) {
+   var msg = '[kadserver] kad server not ready to delete KV tuples.'
+   winston.error(msg)
+   deferred.reject(new Error(msg))
+   return deferred.promise
+ } else {
+   return this.putP(key, null)
+ }
+ return deferred.promise
+}
+
+KademliaService.prototype._setupSeeds = function () {
+ debug('_setupSeeds')
+ var self = this
+ _.forEach(seeds, function (connectionInfo, publicKey) {
+   this.messaging.send('messaging.connectionInfo', 'local', connectionInfo)
+   setImmediate(function () {
+     self.dht.connect({publicKey: publicKey, connectionInfo: connectionInfo})
+
+   })
+ }, this)
+}
+
+*/
 
 module.exports = KademliaService
