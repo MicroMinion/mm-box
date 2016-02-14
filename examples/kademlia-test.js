@@ -17,15 +17,12 @@ var createPeer = function (name) {
   var storage = new kadfs('./' + name)
   var platform = new Platform()
   platform.messaging.once('self.profile.ready', function (topic, publicKey, data) {
-    console.log('profile ready ') + name
+    console.log('profile ready ' + name)
   })
   var services = {
     profile: new Services.Profile({
       platform: platform,
       storage: storage
-    }),
-    mdns: new Services.mDNS({
-      platform: platform
     }),
     kademlia: new Services.Kademlia({
       storage: storage,
@@ -37,4 +34,4 @@ var createPeer = function (name) {
 
 createPeer('peer-1')
 createPeer('peer-2')
-createPeer('peer-3')
+// createPeer('peer-3')

@@ -1,4 +1,6 @@
-var debugTransport = require('debug')('flunky-dht:flunky-transport')
+var debug = require('debug')('flunky-dht:flunky-transport')
+var inherits = require('inherits')
+var kademlia = require('kad')
 
 /* KADEMLIA CONTACT */
 
@@ -20,21 +22,18 @@ FlunkyContact.prototype.toString = function () {
 
 /* KADEMLIA TRANSPORT */
 
-var FlunkyTransport = function (options) {
-  debugTransport('initialize FlunkyTransport')
+var FlunkyTransport = function (contact, options) {
+  debug('initialize FlunkyTransport')
   this.messaging = options.messaging
-  kademlia.RPC.call(this, options)
+  kademlia.RPC.call(this, contact, options)
   var self = this
-  process.nextTick(function () {
-    self.emit('ready')
-  })
   this.messaging.on('self.kademlia', this._onMessage.bind(this))
   this.messaging.on('friends.kademlia', this._onMessage.bind(this))
   this.messaging.on('public.kademlia', this._onMessage.bind(this))
 }
 
 FlunkyTransport.prototype._onMessage = function (topic, publicKey, data) {
-  debugTransport('_onMessage')
+  debug('_onMessage')
   data = new Buffer(JSON.stringify(data), 'utf8')
   this._handleMessage(data, {publicKey: publicKey})
 }
@@ -44,7 +43,7 @@ FlunkyTransport.prototype._createContact = function (options) {
 }
 
 FlunkyTransport.prototype._send = function (data, contact) {
-  debugTransport('_send')
+  debug('_send')
   data = JSON.parse(data.toString('utf8'))
   this.messaging.send('kademlia', contact.publicKey, data, {realtime: true, expireAfter: 10000})
 }
@@ -53,4 +52,7 @@ FlunkyTransport.prototype._close = function () {}
 
 inherits(FlunkyTransport, kademlia.RPC)
 
-module.exports = FlunkyTransport
+module.exports = {
+  FlunkyTransport: FlunkyTransport,
+  FlunkyContact: FlunkyContact
+}

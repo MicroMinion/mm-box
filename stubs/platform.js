@@ -1,5 +1,6 @@
 var EventEmitter = require('ak-eventemitter')
 var inherits = require('inherits')
+var debug = require('debug')('messaging')
 
 var MAX_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7
 
@@ -20,25 +21,19 @@ var Messaging = function () {
   this.profile = undefined
   this.on('self.profile.update', function (topic, publicKey, data) {
     messaging.profile = data
-    messagers[messaging.profile.publicKey] = messaging
+    messagers[data.publicKey] = messaging
+    process.nextTick(function () {
+      messaging.emit('self.messaging.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {} })
+    })
   })
+
 }
 
 inherits(Messaging, EventEmitter)
 
 Messaging.prototype.send = function (topic, publicKey, data, options) {
+  console.log('Messaging.send')
   var messaging = this
-  if (!options) { options = {}}
-  if (!options.realtime) {
-    options.realtime = true
-  }
-  var message = {
-    id: options.id ? options.id : uuid.v4(),
-    topic: topic,
-    data: data,
-    timestamp: new Date().toJSON(),
-    expireAfter: options.expireAfter ? options.expireAfter : MAX_EXPIRE_TIME
-  }
   if (this._isLocal(publicKey)) {
     process.nextTick(function () {
       messaging.emit('self.' + topic, publicKey, data)
@@ -51,7 +46,6 @@ Messaging.prototype.send = function (topic, publicKey, data, options) {
 }
 
 Messaging.prototype._isLocal = function (publicKey) {
-  debug('isLocal')
   if (publicKey === 'local') {
     return true
   }

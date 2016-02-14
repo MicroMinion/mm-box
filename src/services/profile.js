@@ -27,10 +27,15 @@ var Profile = function (options) {
 }
 
 Profile.prototype.update = function () {
+  debug('update')
   if (this.profile.privateKey) {
     this.messaging.send('profile.update', 'local', this.profile)
   }
-  this.storage.put('profile', JSON.stringify(this.profile))
+  console.log(JSON.stringify(this.profile))
+  this.storage.put('profile', JSON.stringify(this.profile), function (err) {
+    debug('saved profile')
+    debug(err)
+  })
 }
 
 Profile.prototype.loadProfile = function () {
@@ -61,11 +66,12 @@ Profile.prototype.setDefaults = function () {
 }
 
 Profile.prototype.setKeys = function () {
+  debug('setKeys')
   if (!this.profile.privateKey) {
     var keypair = nacl.box.keyPair()
     this.profile.publicKey = nacl.util.encodeBase64(keypair.publicKey)
     this.profile.privateKey = nacl.util.encodeBase64(keypair.secretKey)
-    this.update(true)
+    this.update()
   }
 }
 
