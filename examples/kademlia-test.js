@@ -7,30 +7,29 @@ window.location = {
 }
 
 var kadfs = require('kad-fs')
-var platform = require('flunky-platform')
+var Platform = require('../stubs/platform.js')
+var Services = require('../src/index.js').services
 var _ = require('lodash')
 
 var peers = {}
 
 var createPeer = function (name) {
   var storage = new kadfs('./' + name)
-  var messaging = new platform.Messaging({
-    storage: storage
-  })
-  messaging.once('self.profile.ready', function (topic, publicKey, data) {
+  var platform = new Platform()
+  platform.messaging.once('self.profile.ready', function (topic, publicKey, data) {
     console.log('profile ready ') + name
   })
   var services = {
-    profile: new platform.services.Profile({
-      messaging: messaging,
+    profile: new Services.Profile({
+      platform: platform,
       storage: storage
     }),
-    mdns: new platform.services.mDNS({
-      messaging: messaging
+    mdns: new Services.mDNS({
+      platform: platform
     }),
-    kademlia: new platform.services.Kademlia({
+    kademlia: new Services.Kademlia({
       storage: storage,
-      messaging: messaging
+      platform: platform
     })
   }
   peers[name] = services
