@@ -19,6 +19,7 @@
     "config": "",
     "inherits": "",
     "kad": "",
+    "kad-fs": "0.0.4",
     "leveldown": "",
     "levelup": "",
     "mdns-js": "^0.4.0",
@@ -33,6 +34,7 @@
     "winston": ""
   },
   "devDependencies": {
+    "ak-eventemitter": "0.0.5",
     "chai": "",
     "chai-as-promised": "",
     "mocha": ""
