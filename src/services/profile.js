@@ -1,6 +1,3 @@
-/* global cloudSky */
-
-var _ = require('lodash')
 var Q = require('q')
 var debug = require('debug')('flunky-dht:services:profile')
 var nacl = require('tweetnacl')
@@ -24,42 +21,9 @@ var Profile = function (options) {
     privateKey: null,
   }
   this.loadProfile()
-  this.collection = {}
-  this.collection['profile'] = this.profile.info
-  this.messaging.on('self.profile.newCodeNeeded', function (topic, publicKey, data) {
-    profile.setCode()
-  })
   this.messaging.on('self.profile.updateRequest', function (topic, publicKey, data) {
-    profile.update(false)
+    profile.update()
   })
-  this.messaging.on('self.profile.updateInfo', function (topic, publicKey, data) {
-    if (_.has(data.info, 'name')) {
-      profile.profile.info.name = data.info.name
-      profile.collection['profile'].name = data.info.name
-    }
-    if (_.has(data.info, 'accounts')) {
-      profile.profile.info.accounts = data.info.accounts
-      profile.collection['profile'].accounts = data.info.accounts
-    }
-    if (_.has(data.info, 'device')) {
-      profile.profile.info.device = data.info.device
-      profile.collection['profile'].device = data.info.device
-    }
-    profile.syncEngine.update('profile')
-    profile.updateAuthenticationState()
-    profile.update(true)
-  })
-  this.messaging.on('self.profile.updateType', function (topic, publicKey, data) {
-    profile.setType(data.type, data.application)
-  })
-  this.messaging.on('self.profile.publish', function (topic, publicKey, data) {
-    profile.publishUser()
-  })
-  setInterval(function () {
-    if (profile.profile.authenticated) {
-      profile.publishUser()
-    }
-  }, PUBLISH_INTERVAL)
 }
 
 Profile.prototype.update = function () {
@@ -75,12 +39,9 @@ Profile.prototype.loadProfile = function () {
     success: function (state) {
       state = JSON.parse(state)
       profile.profile = state
-      profile.collection['profile'].name = state.info.name
-      profile.collection['profile'].accounts = state.info.accounts
       profile.setDefaults()
-      profile.update(false)
+      profile.update()
       profile.messaging.send('profile.ready', 'local', {})
-      profile.publishUser()
     },
 
     error: function (error) {
@@ -97,18 +58,6 @@ Profile.prototype.setDefaults = function () {
     this.profile.info = {}
   }
   this.setKeys()
-  this.setDeviceName()
-  this.setScan()
-  if (!this.profile.code) {
-    this.setCode()
-  }
-}
-
-Profile.prototype.publishUser = function () {
-  _.forEach(this.profile.info.accounts, function (account) {
-    var key = account.type + ':' + account.id
-    this.messaging.send('directory.put', 'local', {key: key, value: this.profile.publicKey})
-  }, this)
 }
 
 Profile.prototype.setKeys = function () {
