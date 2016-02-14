@@ -5,8 +5,12 @@ var mkdirp = require('mkdirp')
 var Q = require('q')
 var uuid = require('uuid')
 var winston = require('winston')
-var Platform = require('flunky-platform')
+var Platform = require('../stubs/platform.js')
 var services = require('./services/index.js')
+var kadfs = require('kad-fs')
+var path = require('path')
+
+var storageDir = './data'
 
 /**
  * Create Standalone DHT node
@@ -16,9 +20,9 @@ function StandaloneDHT (args) {
   if (!(this instanceof StandaloneDHT)) return new StandaloneDHT(args)
   this.args = args
   winston.level = this.args.loglevel.server
-  winston.info('[kadserver] kad sever configuration = ' + JSON.stringify(this.args))
+  winston.info('[kadserver] kad server configuration = ' + JSON.stringify(this.args))
   this.platform = new Platform({
-    storage: null
+    storage: kadfs(path.join(storageDir, 'platform'))
   })
   EventEmitter.call(this)
   this._initializeServices()
@@ -29,15 +33,15 @@ inherits(StandaloneDHT, EventEmitter)
 StandaloneDHT.prototype._initializeServices = function () {
   this.profile = new services.Profile({
     platform: this.platform,
-    storage: null
+    storage: kadfs(path.join(storageDir, 'profile'))
   })
   this.mdns = new services.mDNS({
     platform: this.platform,
-    storage: null
+    storage: kadfs(path.join(storageDir, 'mdns'))
   })
   this.dht = new services.Kademlia({
     platform: this.platform,
-    storage: null,
+    storage: kadfs(path.join(storageDir, 'dht')),
     seeds: null
   })
 }
