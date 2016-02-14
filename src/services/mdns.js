@@ -10,7 +10,7 @@ var isFlunky = function (data, protocol) {
 var mDNSService = function (options) {
   var service = this
   this.hosts = {}
-  this.messaging = options.messaging
+  this.messaging = options.platform.messaging
   // mdns.excludeInterface('0.0.0.0')
   this.browser = mdns.createBrowser()
   this.browser.on('ready', function () {
