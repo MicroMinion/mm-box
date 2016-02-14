@@ -8,7 +8,7 @@ var seeds = {}
 
 var KademliaService = function (options) {
   debug('initialize')
-  this.messaging = options.messaging
+  this.messaging = options.platform.messaging
   this.storage = options.storage
   this.replyTo = {}
   this.online = false
