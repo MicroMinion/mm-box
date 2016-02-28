@@ -13,31 +13,21 @@
   "bin": {
     "flunky-dht": "./scripts/flunky-dht"
   },
-  "author": "Nico Janssens <nico.b.janssens@gmail.com>",
+  "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
   "license": "TBD",
   "dependencies": {
-    "config": "",
-    "inherits": "",
-    "kad": "",
-    "kad-fs": "0.0.4",
-    "leveldown": "",
-    "levelup": "",
-    "mdns-js": "^0.4.0",
-    "merge": "",
-    "minimist": "",
-    "mkdirp": "",
-    "nat-upnp": "",
-    "public-ip": "",
-    "q": "",
-    "stun": "",
-    "uuid": "",
-    "winston": ""
+    "crypto": "0.0.3",
+    "debug": "^2.2.0",
+    "inherits": "^2.0.1",
+    "kad": "^1.4.2",
+    "lodash": "^4.5.1",
+    "mdns-js": "^0.5.0",
+    "q": "^1.4.1",
+    "tweetnacl": "^0.14.1",
+    "tweetnacl-util": "^0.13.3"
   },
   "devDependencies": {
-    "ak-eventemitter": "0.0.5",
-    "chai": "",
-    "chai-as-promised": "",
-    "mocha": ""
+    "ak-eventemitter": "0.0.5"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha test/*.unit.js"

@@ -1,8 +1,5 @@
 var EventEmitter = require('ak-eventemitter')
 var inherits = require('inherits')
-var debug = require('debug')('messaging')
-
-var MAX_EXPIRE_TIME = 1000 * 60 * 60 * 24 * 7
 
 var Platform = function () {
   this.messaging = new Messaging()
@@ -13,20 +10,27 @@ Platform.prototype.disable = function () {}
 
 var messagers = {}
 
+var connectionCount = 1
+
 var Messaging = function () {
   EventEmitter.call(this, {
     delimiter: '.'
   })
   var messaging = this
   this.profile = undefined
+  this.cache = {}
+  this.on('self.messaging.connectionInfo', function (topic, publicKey, data) {
+    messaging.cache[data.publicKey] = data.connectionInfo.index
+  })
   this.on('self.profile.update', function (topic, publicKey, data) {
     messaging.profile = data
-    messagers[data.publicKey] = messaging
+    messaging.connectionCount = connectionCount
+    messagers[messaging.connectionCount] = messaging
+    connectionCount += 1
     process.nextTick(function () {
-      messaging.emit('self.messaging.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {} })
+      messaging.emit('self.messaging.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {index: messaging.connectionCount}})
     })
   })
-
 }
 
 inherits(Messaging, EventEmitter)
@@ -41,7 +45,7 @@ Messaging.prototype.send = function (topic, publicKey, data, options) {
     return
   }
   process.nextTick(function () {
-    messagers[publicKey].emit('public.' + topic, publicKey, data)
+    messagers[messaging.cache[publicKey]].emit('public.' + topic, publicKey, data)
   })
 }
 

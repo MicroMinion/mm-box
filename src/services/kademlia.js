@@ -1,5 +1,4 @@
 var kademlia = require('kad')
-var inherits = require('inherits')
 var debug = require('debug')('flunky-platform:services:kademlia')
 var FlunkyTransport = require('../flunky-transport.js').FlunkyTransport
 var FlunkyContact = require('../flunky-transport.js').FlunkyContact
@@ -38,7 +37,7 @@ KademliaService.prototype._setup = function () {
   var contact = new FlunkyContact(this.myConnectionInfo)
   this.dht = new kademlia.Node({
     storage: this.storage,
-    transport: new FlunkyTransport(contact, {messaging: this.messaging}),
+    transport: new FlunkyTransport(contact, {messaging: this.messaging})
   })
   var service = this
   this.dht.once('connect', function () {
@@ -172,13 +171,20 @@ KadServer.prototype.delP = function (key) {
 */
 KademliaService.prototype._setupSeeds = function () {
   debug('_setupSeeds')
-  var self = this
   _.forEach(seeds, function (connectionInfo, publicKey) {
-    this.messaging.send('messaging.connectionInfo', 'local', {publicKey: publicKey, connectionInfo: connectionInfo})
-    setImmediate(function () {
-      self.dht.connect(new FlunkyContact({publicKey: publicKey, connectionInfo: connectionInfo}))
-    })
+    this._setupSeed(publicKey, connectionInfo)
   }, this)
+}
+
+KademliaService.prototype._setupSeed = function (publicKey, connectionInfo) {
+  debug('_setupSeed')
+  debug(publicKey)
+  debug(connectionInfo)
+  var self = this
+  this.messaging.send('messaging.connectionInfo', 'local', {publicKey: publicKey, connectionInfo: connectionInfo})
+  setImmediate(function () {
+    self.dht.connect(new FlunkyContact({publicKey: publicKey, connectionInfo: connectionInfo}))
+  })
 }
 
 module.exports = KademliaService

@@ -5,8 +5,12 @@ var kademlia = require('kad')
 /* KADEMLIA CONTACT */
 
 var FlunkyContact = function (options) {
+  if (!(this instanceof FlunkyContact)) {
+    return new FlunkyContact(options)
+  }
   this.publicKey = options.publicKey
   this.connectionInfo = options.connectionInfo
+  console.log(options)
   kademlia.Contact.call(this, options)
 }
 
@@ -26,20 +30,23 @@ var FlunkyTransport = function (contact, options) {
   debug('initialize FlunkyTransport')
   this.messaging = options.messaging
   kademlia.RPC.call(this, contact, options)
-  var self = this
+}
+
+inherits(FlunkyTransport, kademlia.RPC)
+
+FlunkyTransport.prototype._open = function (ready) {
   this.messaging.on('self.kademlia', this._onMessage.bind(this))
   this.messaging.on('friends.kademlia', this._onMessage.bind(this))
   this.messaging.on('public.kademlia', this._onMessage.bind(this))
+  setImmediate(function () {
+    ready()
+  })
 }
 
 FlunkyTransport.prototype._onMessage = function (topic, publicKey, data) {
   debug('_onMessage')
   data = new Buffer(JSON.stringify(data), 'utf8')
-  this._handleMessage(data, {publicKey: publicKey})
-}
-
-FlunkyTransport.prototype._createContact = function (options) {
-  return new FlunkyContact(options)
+  this.receive(data)
 }
 
 FlunkyTransport.prototype._send = function (data, contact) {
@@ -50,7 +57,10 @@ FlunkyTransport.prototype._send = function (data, contact) {
 
 FlunkyTransport.prototype._close = function () {}
 
-inherits(FlunkyTransport, kademlia.RPC)
+FlunkyTransport.prototype._createContact = function (options) {
+  this.messaging.send('messaging.connectionInfo', 'local', options)
+  return new this._contact.constructor(options)
+}
 
 module.exports = {
   FlunkyTransport: FlunkyTransport,

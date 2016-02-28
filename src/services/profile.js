@@ -1,6 +1,7 @@
 var Q = require('q')
 var debug = require('debug')('flunky-dht:services:profile')
 var nacl = require('tweetnacl')
+nacl.util = require('tweetnacl-util')
 var crypto = require('crypto')
 
 nacl.setPRNG(function (x, n) {
@@ -10,15 +11,13 @@ nacl.setPRNG(function (x, n) {
   for (i = 0; i < v.length; i++) v[i] = 0
 })
 
-var PUBLISH_INTERVAL = 1000 * 60 * 5
-
 var Profile = function (options) {
   var profile = this
   this.messaging = options.platform.messaging
   this.storage = options.storage
   this.profile = {
     publicKey: null,
-    privateKey: null,
+    privateKey: null
   }
   this.loadProfile()
   this.messaging.on('self.profile.updateRequest', function (topic, publicKey, data) {
@@ -68,9 +67,14 @@ Profile.prototype.setDefaults = function () {
 Profile.prototype.setKeys = function () {
   debug('setKeys')
   if (!this.profile.privateKey) {
+    debug('no private key found')
     var keypair = nacl.box.keyPair()
+    debug('generated keypair')
+    debug(keypair.publicKey)
     this.profile.publicKey = nacl.util.encodeBase64(keypair.publicKey)
+    debug('set public key')
     this.profile.privateKey = nacl.util.encodeBase64(keypair.secretKey)
+    debug('before update')
     this.update()
   }
 }
