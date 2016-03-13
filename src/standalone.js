@@ -1,10 +1,6 @@
 var EventEmitter = require('events').EventEmitter
 var inherits = require('inherits')
-var levelup = require('levelup')
-var mkdirp = require('mkdirp')
 var Q = require('q')
-var uuid = require('uuid')
-var winston = require('winston')
 var Platform = require('../stubs/platform.js')
 var services = require('./services/index.js')
 var kadfs = require('kad-fs')
@@ -162,4 +158,8 @@ function _initKadDhtP (args) {
   return deferred.promise
 }
 
-module.exports = StandaloneDHT
+module.exports = {
+  run: function () {
+    new StandaloneDHT()
+  }
+}

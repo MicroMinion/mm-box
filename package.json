@@ -1,7 +1,7 @@
 {
   "name": "flunky-dht",
   "version": "0.0.1",
-  "description": "Kad server to faciliate flunky directory server",
+  "description": "DHT build on top of flunky platform",
   "main": "src/index.js",
   "keywords": [
     "directory",
@@ -16,10 +16,10 @@
   "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
   "license": "TBD",
   "dependencies": {
-    "crypto": "0.0.3",
     "debug": "^2.2.0",
     "inherits": "^2.0.1",
     "kad": "^1.4.2",
+    "kad-fs": "0.0.4",
     "lodash": "^4.5.1",
     "mdns-js": "^0.5.0",
     "q": "^1.4.1",
