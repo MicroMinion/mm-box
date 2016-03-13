@@ -10,12 +10,11 @@ var storageDir = './data'
  */
 function StandaloneDHT () {
   if (!(this instanceof StandaloneDHT)) return new StandaloneDHT()
-  // TODO: Fill in
-  this._initializeServices()
   this.platform = new Platform({
-    identity: null,
     storage: kadfs(path.join(storageDir, 'platform'))
   })
+  this._initializeServices()
+
 }
 
 StandaloneDHT.prototype._initializeServices = function () {
