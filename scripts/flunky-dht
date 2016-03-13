@@ -1,0 +1,3 @@
+var StandaloneDHT = require('../src/standalone.js')
+
+var dht = new StandaloneDHT()

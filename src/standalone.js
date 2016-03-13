@@ -34,8 +34,4 @@ StandaloneDHT.prototype._initializeServices = function () {
   })
 }
 
-module.exports = {
-  run: function () {
-    return new StandaloneDHT()
-  }
-}
+module.exports = StandaloneDHT
