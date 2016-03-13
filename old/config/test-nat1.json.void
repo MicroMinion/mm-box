@@ -1,9 +1,0 @@
-{
-  "port": 65535,
-  "nat": {
-    "type": "upnp",
-    "public_port": 65534
-  },
-  "seeds": [],
-  "storage": "./db-testnat1"
-}
