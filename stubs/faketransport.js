@@ -1,7 +1,6 @@
 'use strict'
 
 var inherits = require('util').inherits
-var dgram = require('dgram')
 var RPC = require('../node_modules/kad/lib/rpc')
 
 inherits(FakeTransport, RPC)

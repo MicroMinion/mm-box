@@ -13,7 +13,7 @@ var KademliaService = function (options) {
   this.storage = options.storage
   this.myConnectionInfo = {}
   this.online = false
-  this.messaging.on('self.messaging.myConnectionInfo', this._updateConnectionInfo.bind(this))
+  this.messaging.on('self.transports.myConnectionInfo', this._updateConnectionInfo.bind(this))
 }
 
 KademliaService.prototype._updateConnectionInfo = function (topic, publicKey, data) {
@@ -32,8 +32,8 @@ KademliaService.prototype._setup = function () {
   debug('_setup')
   this.messaging.on('self.directory.get', this.get.bind(this))
   this.messaging.on('self.directory.put', this.put.bind(this))
-  this.messaging.on('self.messaging.connectionInfo', this.connect.bind(this))
-  this.messaging.on('self.messaging.requestConnectionInfo', this.requestConnectionInfo.bind(this))
+  this.messaging.on('self.transports.connectionInfo', this.connect.bind(this))
+  this.messaging.on('self.transports.requestConnectionInfo', this.requestConnectionInfo.bind(this))
   var contact = new FlunkyContact(this.myConnectionInfo)
   this.dht = new kademlia.Node({
     storage: this.storage,
@@ -44,7 +44,7 @@ KademliaService.prototype._setup = function () {
     service.online = true
   })
   this._setupSeeds()
-  this.messaging.send('messaging.requestAllConnectionInfo', 'local', {})
+  this.messaging.send('transports.requestAllConnectionInfo', 'local', {})
 }
 
 KademliaService.prototype.connect = function (topic, publicKey, data) {
@@ -181,7 +181,7 @@ KademliaService.prototype._setupSeed = function (publicKey, connectionInfo) {
   debug(publicKey)
   debug(connectionInfo)
   var self = this
-  this.messaging.send('messaging.connectionInfo', 'local', {publicKey: publicKey, connectionInfo: connectionInfo})
+  this.messaging.send('transports.connectionInfo', 'local', {publicKey: publicKey, connectionInfo: connectionInfo})
   setImmediate(function () {
     self.dht.connect(new FlunkyContact({publicKey: publicKey, connectionInfo: connectionInfo}))
   })

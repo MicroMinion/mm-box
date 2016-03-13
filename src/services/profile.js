@@ -15,6 +15,7 @@ var Profile = function (options) {
   var profile = this
   this.messaging = options.platform.messaging
   this.storage = options.storage
+  this.platform = options.platform
   this.profile = {
     publicKey: null,
     privateKey: null
@@ -29,8 +30,8 @@ Profile.prototype.update = function () {
   debug('update')
   if (this.profile.privateKey) {
     this.messaging.send('profile.update', 'local', this.profile)
+    this.platform.setIdentity(this)
   }
-  console.log(JSON.stringify(this.profile))
   this.storage.put('profile', JSON.stringify(this.profile), function (err) {
     debug('saved profile')
     debug(err)
@@ -45,13 +46,11 @@ Profile.prototype.loadProfile = function () {
       profile.profile = state
       profile.setDefaults()
       profile.update()
-      profile.messaging.send('profile.ready', 'local', {})
     },
 
     error: function (error) {
       debug(error)
       profile.setDefaults()
-      profile.messaging.send('profile.ready', 'local', {})
     }
   }
   Q.nfcall(this.storage.get.bind(this.storage), 'profile').then(options.success, options.error)
@@ -78,5 +77,17 @@ Profile.prototype.setKeys = function () {
     this.update()
   }
 }
+
+Object.defineProperty(Profile.prototype, 'publicKey', {
+  get: function () {
+    return this.profile.publicKey
+  }
+})
+
+Object.defineProperty(Profile.prototype, 'privateKey', {
+  get: function () {
+    return this.profile.privateKey
+  }
+})
 
 module.exports = Profile

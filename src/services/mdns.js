@@ -37,17 +37,17 @@ var mDNSService = function (options) {
         }
       }
       service.hosts[publicKey] = connectionInfo
-      service.messaging.send('messaging.connectionInfo', 'local', connectionInfo)
+      service.messaging.send('transports.connectionInfo', 'local', connectionInfo)
     }
   })
-  this.messaging.on('self.messaging.myConnectionInfo', this._update.bind(this))
-  this.messaging.on('self.messaging.requestConnectionInfo', this._request.bind(this))
-  this.messaging.on('self.messaging.requestAllConnectionInfo', this._requestAll.bind(this))
+  this.messaging.on('self.transports.myConnectionInfo', this._update.bind(this))
+  this.messaging.on('self.transports.requestConnectionInfo', this._request.bind(this))
+  this.messaging.on('self.transports.requestAllConnectionInfo', this._requestAll.bind(this))
 }
 
 mDNSService.prototype._requestAll = function (topic, publicKey, data) {
   _.forEach(this.hosts, function (connectionInfo, publicKey) {
-    this.messaging.send('messaging.connectionInfo', 'local', connectionInfo)
+    this.messaging.send('transports.connectionInfo', 'local', connectionInfo)
   }, this)
 }
 
@@ -75,7 +75,7 @@ mDNSService.prototype._update = function (topic, publicKey, data) {
 
 mDNSService.prototype._request = function (topic, publicKey, data) {
   if (_.has(this.hosts, data)) {
-    this.messaging.send('messaging.connectionInfo', 'local', this.hosts[data])
+    this.messaging.send('transports.connectionInfo', 'local', this.hosts[data])
   }
 }
 
