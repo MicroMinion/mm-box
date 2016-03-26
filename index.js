@@ -8,21 +8,20 @@ var storageDir = './data'
 /**
  * Create Standalone DHT node
  */
-function StandaloneDHT () {
-  if (!(this instanceof StandaloneDHT)) return new StandaloneDHT()
+function DHT () {
+  if (!(this instanceof DHT)) return new DHT()
   this.platform = new Platform({
     storage: kadfs(path.join(storageDir, 'platform'))
   })
   this._initializeServices()
-
 }
 
-StandaloneDHT.prototype._initializeServices = function () {
+DHT.prototype._initializeServices = function () {
   this.profile = new services.BasicProfile({
     platform: this.platform,
     storage: kadfs(path.join(storageDir, 'profile'))
   })
-  this.mdns = new services.mDNS({
+  this.mdns = new services.MulticastDNS({
     platform: this.platform,
     storage: kadfs(path.join(storageDir, 'mdns'))
   })
@@ -33,4 +32,4 @@ StandaloneDHT.prototype._initializeServices = function () {
   })
 }
 
-module.exports = StandaloneDHT
+module.exports = DHT

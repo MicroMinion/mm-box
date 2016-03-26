@@ -13,15 +13,20 @@
   "bin": {
     "flunky-dht": "./scripts/flunky-dht"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@bitbucket.org/nodatacenter/flunky-dht.git"
+  },
   "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
-  "license": "TBD",
+  "license": "MIT",
   "dependencies": {
     "flunky-services": "",
     "flunky-platform": "",
     "kad-fs": "0.0.4"
   },
   "devDependencies": {
-    "ak-eventemitter": "0.0.5"
+    "ak-eventemitter": "0.0.5",
+    "lodash": "^4.6.1"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha test/*.unit.js"

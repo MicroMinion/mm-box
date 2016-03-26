@@ -7,8 +7,8 @@ window.location = {
 }
 
 var kadfs = require('kad-fs')
-var Platform = require('../stubs/platform.js')
-var Services = require('../src/index.js').services
+var Platform = require('./platform-stub.js')
+var services = require('flunky-services')
 var _ = require('lodash')
 
 var peers = {}
@@ -19,17 +19,16 @@ var createPeer = function (name) {
   platform.messaging.once('self.profile.ready', function (topic, publicKey, data) {
     console.log('profile ready ' + name)
   })
-  var services = {
-    profile: new Services.Profile({
+  peers[name] = {
+    profile: new services.BasicProfile({
       platform: platform,
       storage: storage
     }),
-    kademlia: new Services.Kademlia({
+    kademlia: new services.Kademlia({
       storage: storage,
       platform: platform
     })
   }
-  peers[name] = services
 }
 
 createPeer('peer-1')
@@ -73,4 +72,5 @@ setTimeout(function () {
 
 setTimeout(function () {
   console.log('TIMEOUT')
-}, 10000 * 60)
+  process.exit(0)
+}, 1000 * 60)

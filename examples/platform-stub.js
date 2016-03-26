@@ -19,7 +19,7 @@ var Messaging = function () {
   var messaging = this
   this.profile = undefined
   this.cache = {}
-  this.on('self.messaging.connectionInfo', function (topic, publicKey, data) {
+  this.on('self.transports.connectionInfo', function (topic, publicKey, data) {
     messaging.cache[data.publicKey] = data.connectionInfo.index
   })
   this.on('self.profile.update', function (topic, publicKey, data) {
@@ -28,7 +28,7 @@ var Messaging = function () {
     messagers[messaging.connectionCount] = messaging
     connectionCount += 1
     process.nextTick(function () {
-      messaging.emit('self.messaging.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {index: messaging.connectionCount}})
+      messaging.emit('self.transports.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {index: messaging.connectionCount}})
     })
   })
 }
@@ -36,7 +36,6 @@ var Messaging = function () {
 inherits(Messaging, EventEmitter)
 
 Messaging.prototype.send = function (topic, publicKey, data, options) {
-  console.log('Messaging.send')
   var messaging = this
   if (this._isLocal(publicKey)) {
     process.nextTick(function () {
