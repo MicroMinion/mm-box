@@ -1,5 +1,5 @@
 var Platform = require('flunky-platform')
-var services = require('./services/index.js')
+var services = require('flunky-services')
 var kadfs = require('kad-fs')
 var path = require('path')
 
@@ -18,7 +18,7 @@ function StandaloneDHT () {
 }
 
 StandaloneDHT.prototype._initializeServices = function () {
-  this.profile = new services.Profile({
+  this.profile = new services.BasicProfile({
     platform: this.platform,
     storage: kadfs(path.join(storageDir, 'profile'))
   })

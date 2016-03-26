@@ -1,8 +1,8 @@
 {
   "name": "flunky-dht",
   "version": "0.0.1",
-  "description": "DHT build on top of flunky platform",
-  "main": "src/index.js",
+  "description": "Standalone DHT build on top of flunky platform",
+  "main": "index.js",
   "keywords": [
     "directory",
     "key",
@@ -16,15 +16,9 @@
   "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
   "license": "TBD",
   "dependencies": {
-    "debug": "^2.2.0",
-    "inherits": "^2.0.1",
-    "kad": "^1.4.2",
-    "kad-fs": "0.0.4",
-    "lodash": "^4.5.1",
-    "mdns-js": "^0.5.0",
-    "q": "^1.4.1",
-    "tweetnacl": "^0.14.1",
-    "tweetnacl-util": "^0.13.3"
+    "flunky-services": "",
+    "flunky-platform": "",
+    "kad-fs": "0.0.4"
   },
   "devDependencies": {
     "ak-eventemitter": "0.0.5"
