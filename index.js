@@ -12,6 +12,9 @@ var storageDir = './data'
  */
 function DHT () {
   if (!(this instanceof DHT)) return new DHT()
+  if (process.env.STORAGE_DIR) {
+    storageDir = process.env.STORAGE_DIR
+  }
   this.platform = new Platform({
     storage: kadfs(path.join(storageDir, 'platform'))
   })
