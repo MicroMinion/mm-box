@@ -17,10 +17,6 @@ function DHT () {
 }
 
 DHT.prototype._initializeServices = function () {
-  this.profile = new services.BasicProfile({
-    platform: this.platform,
-    storage: kadfs(path.join(storageDir, 'profile'))
-  })
   this.mdns = new services.MulticastDNS({
     platform: this.platform,
     storage: kadfs(path.join(storageDir, 'mdns'))
