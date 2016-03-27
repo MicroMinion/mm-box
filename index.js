@@ -1,3 +1,5 @@
+'use strict'
+
 var Platform = require('flunky-platform')
 var services = require('flunky-services')
 var kadfs = require('kad-fs')
