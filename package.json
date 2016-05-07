@@ -20,9 +20,10 @@
   "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
   "license": "MIT",
   "dependencies": {
-    "flunky-services": "",
     "flunky-platform": "",
-    "kad-fs": "0.0.4"
+    "flunky-services": "",
+    "kad-fs": "0.0.4",
+    "mkdirp": "^0.5.1"
   },
   "devDependencies": {
     "ak-eventemitter": "0.0.5",

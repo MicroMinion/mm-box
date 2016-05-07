@@ -4,6 +4,7 @@ var Platform = require('flunky-platform')
 var services = require('flunky-services')
 var kadfs = require('kad-fs')
 var path = require('path')
+var mkdirp = require('mkdirp')
 
 var storageDir = './data'
 
@@ -15,6 +16,7 @@ function DHT () {
   if (process.env.STORAGE_DIR) {
     storageDir = process.env.STORAGE_DIR
   }
+  mkdirp.sync(storageDir)
   this.platform = new Platform({
     storage: kadfs(path.join(storageDir, 'platform'))
   })
