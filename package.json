@@ -1,7 +1,7 @@
 {
-  "name": "flunky-dht",
-  "version": "0.0.1",
-  "description": "Standalone DHT build on top of flunky platform",
+  "name": "mm-dht",
+  "version": "0.5.0",
+  "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
     "directory",
@@ -11,17 +11,28 @@
     "P2P"
   ],
   "bin": {
-    "flunky-dht": "./scripts/flunky-dht"
+    "flunky-dht": "./scripts/mm-dht"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org/nodatacenter/flunky-dht.git"
+    "url": "git://github.com/MicroMinion/mm-dht.git"
   },
-  "author": "Nico Janssens <nico.b.janssens@gmail.com> and Thomas Delaet <thomas@delaet.org>",
+  "author": {
+    "name": "Thomas Delaet",
+    "email": "thomas@delaet.org"
+
+  },
+  "contributors": [
+    {
+      "name": "Nico Janssens",
+      "email": "nico.b.janssens@gmail.com"
+    }
+  ],
   "license": "MIT",
   "dependencies": {
-    "flunky-platform": "",
-    "flunky-services": "",
+    "mm-platform": "^0.2.0",
+    "mm-services-mdns": "^0.5.0",
+    "mm-services-kademlia": "^0.5.0",
     "kad-fs": "0.0.4",
     "mkdirp": "^0.5.1"
   },
