@@ -32,11 +32,11 @@ var createPeer = function (name) {
 }
 
 createPeer('peer-1')
-createPeer('peer-2')
-createPeer('peer-3')
-createPeer('peer-4')
-createPeer('peer-5')
-createPeer('peer-6')
+// createPeer('peer-2')
+// createPeer('peer-3')
+// createPeer('peer-4')
+// createPeer('peer-5')
+// createPeer('peer-6')
 
 setTimeout(function () {
   console.log('CONNECTING PEERS')
@@ -47,7 +47,9 @@ setTimeout(function () {
     })
     _.forEach(connectTo, function (n) {
       console.log('  ' + n)
-      services.kademlia._setupSeed(peers[n].profile.profile.publicKey, {index: peers[n].kademlia.messaging.connectionCount})
+      services.kademlia._setupSeed(peers[n].profile.profile.publicKey, {
+        index: peers[n].kademlia.messaging.connectionCount
+      })
     })
   })
 }, 1000)
