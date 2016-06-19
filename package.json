@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
@@ -32,7 +32,7 @@
   "dependencies": {
     "mm-platform": "^0.2.1",
     "mm-services-mdns": "^0.5.2",
-    "mm-services-kademlia": "^0.5.2",
+    "mm-services-kademlia": "^0.5.3",
     "kad-fs": "0.0.4",
     "mkdirp": "^0.5.1"
   },
