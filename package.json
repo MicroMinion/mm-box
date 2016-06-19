@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.5.0",
+  "version": "0.5.2",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
@@ -11,7 +11,7 @@
     "P2P"
   ],
   "bin": {
-    "flunky-dht": "./scripts/mm-dht"
+    "mm-dht": "./bin/mm-dht"
   },
   "repository": {
     "type": "git",
@@ -30,17 +30,19 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "mm-platform": "^0.2.0",
-    "mm-services-mdns": "^0.5.0",
-    "mm-services-kademlia": "^0.5.0",
+    "mm-platform": "^0.2.1",
+    "mm-services-mdns": "^0.5.2",
+    "mm-services-kademlia": "^0.5.2",
     "kad-fs": "0.0.4",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
-    "ak-eventemitter": "0.0.5",
-    "lodash": "^4.9.0"
+    "ak-eventemitter": "0.0.6",
+    "lodash": "^4.9.0",
+    "publish": "^0.6.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha test/*.unit.js"
+    "test": "echo",
+    "2npm": "publish"
   }
 }

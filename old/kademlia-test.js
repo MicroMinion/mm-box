@@ -8,7 +8,7 @@ window.location = {
 
 var kadfs = require('kad-fs')
 var Platform = require('./platform-stub.js')
-var services = require('flunky-services')
+// var services = require('flunky-services')
 var _ = require('lodash')
 
 var peers = {}

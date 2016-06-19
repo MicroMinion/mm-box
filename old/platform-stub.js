@@ -1,5 +1,5 @@
 var EventEmitter = require('ak-eventemitter')
-var inherits = require('inherits')
+// var inherits = require('inherits')
 
 var Platform = function () {
   this.messaging = new Messaging()
@@ -28,7 +28,12 @@ var Messaging = function () {
     messagers[messaging.connectionCount] = messaging
     connectionCount += 1
     process.nextTick(function () {
-      messaging.emit('self.transports.myConnectionInfo', 'local', {publicKey: messaging.profile.publicKey, connectionInfo: {index: messaging.connectionCount}})
+      messaging.emit('self.transports.myConnectionInfo', 'local', {
+        publicKey: messaging.profile.publicKey,
+        connectionInfo: {
+          index: messaging.connectionCount
+        }
+      })
     })
   })
 }
