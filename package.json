@@ -31,14 +31,13 @@
   "license": "MIT",
   "dependencies": {
     "mm-platform": "^0.2.1",
-    "mm-services-mdns": "^0.5.2",
-    "mm-services-kademlia": "^0.5.3",
+    "mm-services-mdns": "^0.5.3",
+    "mm-services-kademlia": "^0.5.6",
     "kad-fs": "0.0.4",
     "mkdirp": "^0.5.1"
   },
   "devDependencies": {
     "ak-eventemitter": "0.0.6",
-    "lodash": "^4.9.0",
     "publish": "^0.6.0"
   },
   "scripts": {

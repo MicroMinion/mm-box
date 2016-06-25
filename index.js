@@ -12,14 +12,18 @@ var storageDir = './data'
 /**
  * Create Standalone DHT node
  */
-function DHT () {
+function DHT (directory) {
   if (!(this instanceof DHT)) return new DHT()
-  if (process.env.STORAGE_DIR) {
+  if (directory) {
+    storageDir = directory
+  } else if (process.env.STORAGE_DIR) {
     storageDir = process.env.STORAGE_DIR
   }
-  mkdirp.sync(storageDir)
+  this.storageDir = storageDir
+  mkdirp.sync(this.storageDir)
+  var storage = kadfs(path.join(this.storageDir, 'platform'))
   this.platform = new Platform({
-    storage: kadfs(path.join(storageDir, 'platform'))
+    storage: storage
   })
   this._initializeServices()
 }
@@ -27,11 +31,11 @@ function DHT () {
 DHT.prototype._initializeServices = function () {
   this.mdns = new MulticastDNS({
     platform: this.platform,
-    storage: kadfs(path.join(storageDir, 'mdns'))
+    storage: kadfs(path.join(this.storageDir, 'mdns'))
   })
   this.dht = new Kademlia({
     platform: this.platform,
-    storage: kadfs(path.join(storageDir, 'dht')),
+    storage: kadfs(path.join(this.storageDir, 'dht')),
     seeds: null
   })
 }
