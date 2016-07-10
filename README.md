@@ -18,4 +18,6 @@ node bin/mm-dht
 
 ## Environmental variables
 
-**STORAGE_DIR**: directory to use for persistent storage
+* **STORAGE_DIR**: directory to use for persistent storage
+* **IP_ADDRESS**: IPv4 address to use as endpoint
+* **IP_PORT**: IP port to use for TCP and UDP transports
