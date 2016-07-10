@@ -22,9 +22,9 @@ function DHT (directory) {
   this.storageDir = storageDir
   mkdirp.sync(this.storageDir)
   var storage = kadfs(path.join(this.storageDir, 'platform'))
-  if (process.env.IP_ADDRESS && process.env.IP_PORT) {
+  if (process.env.IP_ADDRESS && process.env.PORT) {
     var connectionInfo = [{
-      transportype: 'udp',
+      transportType: 'udp',
       transportInfo: {
         address: process.env.IP_ADDRESS,
         port: process.env.PORT
