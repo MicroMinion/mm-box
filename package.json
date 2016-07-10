@@ -37,13 +37,10 @@
   },
   "devDependencies": {
     "ak-eventemitter": "0.0.6",
-    "browserify": "^13.0.1",
-    "publish": "^0.6.0",
-    "uglify-js": "^2.7.0"
+    "publish": "^0.6.0"
   },
   "scripts": {
     "test": "echo",
-    "2npm": "publish",
-    "merge": "node ./node_modules/browserify/bin/cmd.js -o mm-dht.js -e bin/mm-dht --node"
+    "2npm": "publish"
   }
 }
