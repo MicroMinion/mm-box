@@ -29,7 +29,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "mm-platform": "^0.2.4",
+    "mm-platform": "^0.2.5",
     "mm-services-mdns": "^0.6.0",
     "mm-services-kademlia": "^0.5.7",
     "kad-fs": "0.0.4",
