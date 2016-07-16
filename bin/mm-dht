@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 var DHT = require('../index.js')
 var winston = require('winston')
 var path = require('path')
@@ -46,7 +48,7 @@ var dhtStore
 
 if (!process.env.DHT_STORE) {
   mkdirp.sync(path.join(storageDir, 'dht'))
-  dhtStore = new kadfs(path.join(storageDir, 'dht'))
+  dhtStore = kadfs(path.join(storageDir, 'dht'))
 } else {
   dhtStore = createStore(process.env.DHT_STORE)
 }
@@ -77,3 +79,5 @@ var dht = new DHT({
   dhtStore: dhtStore,
   connectionInfo: connectionInfo
 })
+
+dht.start()

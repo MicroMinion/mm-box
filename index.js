@@ -45,6 +45,8 @@ function DHT (options) {
   })
 }
 
+DHT.prototype.start = function () {}
+
 DHT.prototype._initializeServices = function () {
   this.mdns = new MulticastDNS({
     platform: this.platform,

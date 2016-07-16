@@ -10,9 +10,6 @@
     "kademlia",
     "P2P"
   ],
-  "bin": {
-    "mm-dht": "./bin/mm-dht"
-  },
   "repository": {
     "type": "git",
     "url": "git://github.com/MicroMinion/mm-dht.git"
