@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.5.9",
+  "version": "0.6.0",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
@@ -29,12 +29,16 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "ed2curve": "^0.1.4",
+    "inherits": "^2.0.1",
     "kad-fs": "0.0.4",
     "kad-memstore": "0.0.1",
     "mkdirp": "^0.5.1",
     "mm-platform": "^0.2.6",
     "mm-services-kademlia": "^0.5.8",
     "mm-services-mdns": "^0.6.1",
+    "tweetnacl": "^0.14.3",
+    "tweetnacl-util": "^0.13.3",
     "winston": "^2.2.0",
     "winston-meta-wrapper": "^1.0.0"
   },

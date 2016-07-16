@@ -34,7 +34,8 @@ function DHT (options) {
   this.platform = new Platform({
     storage: this.platformStore,
     connectionInfo: options.connectionInfo,
-    logger: winstonWrapper(this._logger)
+    logger: winstonWrapper(this._logger),
+    identity: options.identity
   })
   this.platform.on('ready', function () {
     self._logger = winstonWrapper(self._logger)
