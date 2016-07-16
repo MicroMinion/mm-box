@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.5.8",
+  "version": "0.5.9",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
@@ -39,7 +39,6 @@
     "winston-meta-wrapper": "^1.0.0"
   },
   "devDependencies": {
-    "ak-eventemitter": "0.0.6",
     "publish": "^0.6.0"
   },
   "scripts": {
