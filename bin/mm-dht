@@ -1,3 +1,0 @@
-var DHT = require('../index.js')
-
-var dht = new DHT()
