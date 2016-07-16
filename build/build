@@ -1,9 +1,8 @@
 #!/bin/bash
 
-VERSION='0.1'
 WHAT_AM_I=$(uname -m)
-IMAGE_RPI='nocloud/rpi-kadserver'
-IMAGE_x86='nocloud/kadserver'
+IMAGE_RPI='mm/rpi-dht'
+IMAGE_x86='mm/dht'
 
 # Exit upon errors
 set -e
@@ -33,21 +32,13 @@ function build {
 
 function build4rpi {
   log_info "Building docker container to run kad server on rpi"
-  cp ./Dockerfile.rpi ../../Dockerfile
-  pushd ../../. >> /dev/null
-  docker build -t ${IMAGE_RPI} .
-  popd >> /dev/null
-  rm ../../Dockerfile
+  docker build -t ${IMAGE_RPI} -f build/Dockerfile.rpi .
   log_info "Done"
 }
 
 function build4x86 {
   log_info "Building docker container to run kad server on x86"
-  cp ./Dockerfile.x86 ../../Dockerfile
-  pushd ../../. >> /dev/null
-  docker build -t ${IMAGE_x86} .
-  popd >> /dev/null
-  rm ../../Dockerfile
+  docker build -t ${IMAGE_x86} -f build/Dockerfile.x86 .
   log_info "Done"
 }
 
@@ -55,7 +46,7 @@ function build4x86 {
 #
 function usage {
 cat << END
-Control script for building kad server container $VERSION
+Control script for building kad server container
 Usage: build
 END
 exit 0
