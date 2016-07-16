@@ -3,55 +3,57 @@
 var Platform = require('mm-platform')
 var MulticastDNS = require('mm-services-mdns')
 var Kademlia = require('mm-services-kademlia')
-var kadfs = require('kad-fs')
-var path = require('path')
-var mkdirp = require('mkdirp')
-
-var storageDir = './data'
+var winston = require('winston')
+var MemStore = require('kad-memstore')
+var winstonWrapper = require('winston-meta-wrapper')
 
 /**
  * Create Standalone DHT node
  */
-function DHT (directory) {
+function DHT (options) {
+  var self = this
   if (!(this instanceof DHT)) return new DHT()
-  if (directory) {
-    storageDir = directory
-  } else if (process.env.STORAGE_DIR) {
-    storageDir = process.env.STORAGE_DIR
+  if (!options) {
+    options = {}
   }
-  this.storageDir = storageDir
-  mkdirp.sync(this.storageDir)
-  var storage = kadfs(path.join(this.storageDir, 'platform'))
-  if (process.env.IP_ADDRESS && process.env.PORT) {
-    var connectionInfo = [{
-      transportType: 'udp',
-      transportInfo: {
-        address: process.env.IP_ADDRESS,
-        port: process.env.PORT
-      }
-    }, {
-      transportType: 'tcp',
-      transportInfo: {
-        address: process.env.IP_ADDRESS,
-        port: process.env.PORT
-      }
-    }]
+  if (options.logger) {
+    this._logger = options.logger
+  } else {
+    this._logger = winston
+  }
+  if (!options.platformStore) {
+    this.platformStore = new MemStore()
+  } else {
+    this.platformStore = options.platformStore
+  }
+  if (!options.dhtStore) {
+    this.dhtStore = new MemStore()
+  } else {
+    this.dhtStore = options.dhtStore
   }
   this.platform = new Platform({
-    storage: storage,
-    connectionInfo: connectionInfo
+    storage: this.platformStore,
+    connectionInfo: options.connectionInfo,
+    logger: winstonWrapper(this._logger)
   })
-  this._initializeServices()
+  this.platform.on('ready', function () {
+    self._logger = winstonWrapper(self._logger)
+    self._logger.addMeta({
+      node: self.platform.identity.getSignId()
+    })
+    self._initializeServices()
+  })
 }
 
 DHT.prototype._initializeServices = function () {
   this.mdns = new MulticastDNS({
     platform: this.platform,
-    storage: kadfs(path.join(this.storageDir, 'mdns'))
+    logger: this._logger
   })
   this.dht = new Kademlia({
     platform: this.platform,
-    storage: kadfs(path.join(this.storageDir, 'dht')),
+    storage: this.dhtStore,
+    logger: this._logger,
     seeds: null
   })
 }
