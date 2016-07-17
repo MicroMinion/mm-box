@@ -8,22 +8,14 @@ RUN apt-get update
 RUN apt-get -y upgrade
 
 # install nodejs 4.x.x and npm 2.x.x
-RUN apt-get -y install wget git build-essential python
-RUN wget -O node.tar.gz http://nodejs.org/dist/v4.1.1/node-v4.1.1-linux-armv6l.tar.gz
+RUN apt-get -y install wget
+RUN wget -O node.tar.gz http://nodejs.org/dist/v4.4.5/node-v4.4.5-linux-armv7l.tar.gz
 RUN tar -C /usr/local/ --strip-components=1 -zxvf node.tar.gz
 RUN rm node.tar.gz
 
-# create flunky user
-RUN /usr/sbin/useradd --create-home --home-dir /home/flunky --shell /bin/false flunky
+# create microminion user
+RUN /usr/sbin/useradd --create-home --home-dir /home/microminion --shell /bin/false microminion
 
-# create work directory
-ENV dht /home/flunky/dht
-RUN mkdir ${dht}
-WORKDIR ${dht}
+RUN npm install -g mm-dht@0.5.9
 
-# copy all code
-ADD . $dht
-
-# install npm dependencies
-WORKDIR kad-server
-RUN npm install
+ENTRYPOINT ["mm-dht"]

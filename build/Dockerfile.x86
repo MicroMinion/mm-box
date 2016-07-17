@@ -4,4 +4,4 @@ MAINTAINER Thomas Delaet <thomas@delaet.org>
 
 RUN npm install -g mm-dht@0.5.9
 
-CMD ["mm-dht"]
+ENTRYPOINT ["mm-dht"]
