@@ -12,26 +12,26 @@ var Identity = require('../identity.js')
 
 var storageDir = './data'
 
-var createStore = function(name) {
-    name = url.parse(name)
-    if (name.protocol === 'file:') {
-        mkdirp.sync(name.pathname)
-        return kadfs(name.pathname)
-    } else {
-        throw new Error('Unsupported storage location')
-    }
+var createStore = function (name) {
+  name = url.parse(name)
+  if (name.protocol === 'file:') {
+    mkdirp.sync(name.pathname)
+    return kadfs(name.pathname)
+  } else {
+    throw new Error('Unsupported storage location')
+  }
 }
 
 /* LOGGER */
 
 var logger = new winston.Logger({
-    transports: [
-        new winston.transports.Console({
-            level: 'info',
-            timestamp: true,
-            logstash: true
-        })
-    ]
+  transports: [
+    new winston.transports.Console({
+      level: 'info',
+      timestamp: true,
+      logstash: true
+    })
+  ]
 })
 
 /* PLATFORM STORE */
@@ -39,10 +39,10 @@ var logger = new winston.Logger({
 var platformStore
 
 if (!process.env.PLATFORM_STORE) {
-    mkdirp.sync(path.join(storageDir, 'platform'))
-    platformStore = kadfs(path.join(storageDir, 'platform'))
+  mkdirp.sync(path.join(storageDir, 'platform'))
+  platformStore = kadfs(path.join(storageDir, 'platform'))
 } else {
-    platformStore = createStore(process.env.PLATFORM_STORE)
+  platformStore = createStore(process.env.PLATFORM_STORE)
 }
 
 /* DHT STORE */
@@ -50,34 +50,34 @@ if (!process.env.PLATFORM_STORE) {
 var dhtStore
 
 if (!process.env.DHT_STORE) {
-    mkdirp.sync(path.join(storageDir, 'dht'))
-    dhtStore = kadfs(path.join(storageDir, 'dht'))
+  mkdirp.sync(path.join(storageDir, 'dht'))
+  dhtStore = kadfs(path.join(storageDir, 'dht'))
 } else {
-    dhtStore = createStore(process.env.DHT_STORE)
+  dhtStore = createStore(process.env.DHT_STORE)
 }
 
 /* CONNECTION_INFO */
 
 if (process.env.IP_ADDRESS && process.env.PORT) {
-    var connectionInfo = [{
-        transportType: 'udp',
-        transportInfo: {
-            address: process.env.IP_ADDRESS,
-            port: process.env.PORT
-        }
-    }, {
-        transportType: 'tcp',
-        transportInfo: {
-            address: process.env.IP_ADDRESS,
-            port: process.env.PORT
-        }
-    }]
+  var connectionInfo = [{
+    transportType: 'udp',
+    transportInfo: {
+      address: process.env.IP_ADDRESS,
+      port: process.env.PORT
+    }
+  }, {
+    transportType: 'tcp',
+    transportInfo: {
+      address: process.env.IP_ADDRESS,
+      port: process.env.PORT
+    }
+  }]
 }
 
 /* IDENTITY */
 
 if (process.env.IDENTITY) {
-    var identity = new Identity(process.env.IDENTITY)
+  var identity = new Identity(process.env.IDENTITY)
 }
 
 /* mDNS support */
@@ -85,18 +85,18 @@ if (process.env.IDENTITY) {
 var mDNS = true
 
 if (process.env.DISABLE_MDNS) {
-    mDNS = false
+  mDNS = false
 }
 
 /* INITIALIZATION */
 
 var dht = new DHT({
-    logger: logger,
-    platformStore: platformStore,
-    dhtStore: dhtStore,
-    connectionInfo: connectionInfo,
-    identity: identity,
-    mDNS: mDNS
+  logger: logger,
+  platformStore: platformStore,
+  dhtStore: dhtStore,
+  connectionInfo: connectionInfo,
+  identity: identity,
+  mDNS: mDNS
 })
 
 dht.start()
