@@ -21,6 +21,9 @@ function DHT (options) {
   } else {
     this._logger = winston
   }
+  if (!options.mDNS) {
+    options.mDNS = true
+  }
   if (!options.platformStore) {
     this.platformStore = new MemStore()
   } else {
@@ -42,17 +45,19 @@ function DHT (options) {
     self._logger.addMeta({
       node: self.platform.identity.getSignId()
     })
-    self._initializeServices()
+    self._initializeServices(options.mDNS)
   })
 }
 
 DHT.prototype.start = function () {}
 
-DHT.prototype._initializeServices = function () {
-  this.mdns = new MulticastDNS({
-    platform: this.platform,
-    logger: this._logger
-  })
+DHT.prototype._initializeServices = function (mDNS) {
+  if (mDNS) {
+    this.mdns = new MulticastDNS({
+      platform: this.platform,
+      logger: this._logger
+    })
+  }
   this.dht = new Kademlia({
     platform: this.platform,
     storage: this.dhtStore,

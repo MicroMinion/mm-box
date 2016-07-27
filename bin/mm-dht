@@ -80,6 +80,14 @@ if (process.env.IDENTITY) {
     var identity = new Identity(process.env.IDENTITY)
 }
 
+/* mDNS support */
+
+var mDNS: true
+
+if (process.env.DISABLE_MDNS) {
+    mDNS = false
+}
+
 /* INITIALIZATION */
 
 var dht = new DHT({
@@ -87,7 +95,8 @@ var dht = new DHT({
     platformStore: platformStore,
     dhtStore: dhtStore,
     connectionInfo: connectionInfo,
-    identity: identity
+    identity: identity,
+    mDNS: mDNS
 })
 
 dht.start()
