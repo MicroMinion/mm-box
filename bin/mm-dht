@@ -4,7 +4,7 @@ var DHT = require('../index.js')
 var winston = require('winston')
 var path = require('path')
 var mkdirp = require('mkdirp')
-var kadfs = require('kad-fs')
+var kadfs = require('kad-fs-thomas')
 var url = require('url')
 var Identity = require('../identity.js')
 
@@ -14,7 +14,7 @@ var storageDir = './data'
 
 var createStore = function(name) {
     name = url.parse(name)
-    if (name.protocol === 'file') {
+    if (name.protocol === 'file:') {
         mkdirp.sync(name.pathname)
         return kadfs(name.pathname)
     } else {
@@ -82,7 +82,7 @@ if (process.env.IDENTITY) {
 
 /* mDNS support */
 
-var mDNS: true
+var mDNS = true
 
 if (process.env.DISABLE_MDNS) {
     mDNS = false
