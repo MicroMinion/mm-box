@@ -31,8 +31,8 @@
   "dependencies": {
     "ed2curve": "^0.1.4",
     "inherits": "^2.0.1",
-    "kad-fs": "0.0.4",
-    "kad-memstore": "0.0.1",
+    "kad-fs-thomas": "0.1.0",
+    "kad-memstore-thomas": "0.1.0",
     "mkdirp": "^0.5.1",
     "mm-platform": "^0.2.6",
     "mm-services-kademlia": "^0.5.8",
