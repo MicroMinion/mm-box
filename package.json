@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
@@ -35,8 +35,8 @@
     "kad-memstore-thomas": "^0.1.0",
     "lodash": "^4.14.1",
     "mkdirp": "^0.5.1",
-    "mm-platform": "^0.3.0",
-    "mm-services-kademlia": "^0.5.9",
+    "mm-platform": "^0.3.1",
+    "mm-services-kademlia": "^0.6.1",
     "mm-services-mdns": "^0.6.2",
     "tweetnacl": "^0.14.3",
     "tweetnacl-util": "^0.13.3",
