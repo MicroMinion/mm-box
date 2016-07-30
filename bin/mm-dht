@@ -24,10 +24,15 @@ var createStore = function(name) {
 
 /* LOGGER */
 
+var level = 'info'
+if (process.env.DEBUG) {
+    level = 'debug'
+}
+
 var logger = new winston.Logger({
     transports: [
         new winston.transports.Console({
-            level: 'info',
+            level: level,
             timestamp: true,
             logstash: true
         })
