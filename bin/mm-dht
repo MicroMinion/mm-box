@@ -10,7 +10,7 @@ var Identity = require('../identity.js')
 
 /* STORAGE FUNCTIONS */
 
-var storageDir = './data'
+var storageDir = './ldata'
 
 var createStore = function(name) {
     name = url.parse(name)
@@ -29,12 +29,17 @@ if (process.env.DEBUG_LEVEL) {
     level = 'debug'
 }
 
+var logstash = false
+if (process.env.LOGSTASH) {
+    logstash = true
+}
+
 var logger = new winston.Logger({
     transports: [
         new winston.transports.Console({
             level: level,
             timestamp: true,
-            logstash: true
+            logstash: logstash
         })
     ]
 })
