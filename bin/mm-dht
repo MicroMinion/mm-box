@@ -58,17 +58,15 @@ if (!process.env.DHT_STORE) {
 
 /* CONNECTION_INFO */
 
-if (process.env.IP_ADDRESS && process.env.PORT) {
+if (process.env.PORT) {
   var connectionInfo = [{
     transportType: 'udp',
     transportInfo: {
-      address: process.env.IP_ADDRESS,
       port: process.env.PORT
     }
   }, {
     transportType: 'tcp',
     transportInfo: {
-      address: process.env.IP_ADDRESS,
       port: process.env.PORT
     }
   }]
@@ -98,5 +96,9 @@ var dht = new DHT({
   identity: identity,
   mDNS: mDNS
 })
+
+if (identity) {
+  identity.setPlatform(dht.platform)
+}
 
 dht.start()
