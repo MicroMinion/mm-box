@@ -1,6 +1,6 @@
 {
   "name": "mm-dht",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Standalone DHT build on top of MicroMinion platform",
   "main": "index.js",
   "keywords": [
