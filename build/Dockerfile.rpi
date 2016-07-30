@@ -16,6 +16,6 @@ RUN rm node.tar.gz
 # create microminion user
 RUN /usr/sbin/useradd --create-home --home-dir /home/microminion --shell /bin/false microminion
 
-RUN npm install -g mm-dht@0.5.9
+RUN npm install -g mm-dht@0.7.6
 
 ENTRYPOINT ["mm-dht"]
