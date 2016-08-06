@@ -1,15 +1,20 @@
-var kadfs = require('kad-fs-thomas')
-var path = require('path')
+'use strict'
+var _ = require('lodash')
 var mkdirp = require('mkdirp')
+var url = require('url')
 var kadfs = require('kad-fs-thomas')
 var MemStore = require('kad-memstore-thomas')
-var url = require('url')
 var winston = require('winston')
 var winstonWrapper = require('winston-meta-wrapper')
 var Platform = require('mm-platform')
 var MulticastDNS = require('mm-services-mdns')
 var Kademlia = require('mm-services-kademlia')
-var _ = require('lodash')
+var ServiceManager = require('mm-services-manager')
+var TenantService = require('mm-services-tenant')
+var Flukso = require('mm-services-flukso')
+var DevicesManager = require('mm-services-devices')
+var Events = require('mm-services-events')
+
 var Identity = require('./identity.js')
 
 var Runtime = function (environment) {
@@ -22,12 +27,20 @@ var Runtime = function (environment) {
 
 /* STORAGE FUNCTIONS */
 
+Runtime.prototype._hasPersistence = function () {
+  return _.has(this._environment, 'PERSISTENCE')
+}
+
+Runtime.prototype.appendToPersistence = function (suffix) {
+  return this._environment.PERSISTENCE + '/' + suffix
+}
+
 Runtime.prototype._getStore = function (storeName) {
   var envName = storeName.toUpperCase() + '_STORE'
   if (this._environment[envName]) {
-    return createStore(this._environment[envName])
+    return this._createStore(this._environment[envName])
   } else if (this._environment.PERSISTENCE) {
-    return createStore(this._environment.PERSISTENCE + '/' + storeName)
+    return this._createStore(this._environment.PERSISTENCE + '/' + storeName)
   } else {
     return new MemStore()
   }
@@ -103,6 +116,7 @@ Runtime.prototype.createPlatform = function () {
     logger: this.logger,
     identity: this.identity
   })
+  this.platform = platform
   platform.on('ready', function () {
     platform._log.addMeta({
       node: platform.identity.getSignId()
@@ -112,23 +126,37 @@ Runtime.prototype.createPlatform = function () {
   if (this.identity) {
     this.identity.setPlatform(platform)
   }
-  this.platform = platform
 }
 
 /* CREATE SERVICES */
 
 Runtime.prototype._createServices = function () {
+  var self = this
   if (!this._environment.SERVICES) {
     this.logger.warn('No services defined')
     return
   }
   var services = this._environment.SERVICES.split(' ')
-  if (_.has(services, 'mdns')) {
-    this._createmDNS()
+  _.forEach(services, function (serviceName) {
+    self.createService(serviceName)
+  })
+}
+
+Runtime.prototype.createService = function (serviceName) {
+  var factoryFunctions = {
+    'mdns': this._createmDNS,
+    'kademlia': this._createKademlia,
+    'flukso': this._createFlukso,
+    'devices': this._createDevices,
+    'serviceManager': this._createServiceManager,
+    'tenants': this._createTenantService,
+    'events': this._createEventsService
   }
-  if (_.has(services, 'kademlia')) {
-    this._createKademlia()
+  if (_.has(factoryFunctions, serviceName)) {
+    factoryFunctions[serviceName].call(this)
+    return true
   }
+  return false
 }
 
 Runtime.prototype._createmDNS = function () {
@@ -138,12 +166,63 @@ Runtime.prototype._createmDNS = function () {
   })
 }
 
-Runtime.prototype._createKademlia = function (platform) {
+Runtime.prototype._createKademlia = function () {
   this.services.kademlia = new Kademlia({
     platform: this.platform,
     storage: this._getStore('kademlia'),
     logger: this.logger
   })
+}
+
+Runtime.prototype._createServiceManager = function () {
+  this.services.serviceManager = new ServiceManager({
+    platform: this.platform,
+    logger: this.logger,
+    runtime: this,
+    storage: this._getStore('serviceManager')
+  })
+}
+
+Runtime.prototype._createFlukso = function () {
+  this.services.flukso = new Flukso({
+    logger: this.logger,
+    platform: this.platform
+  })
+}
+
+Runtime.prototype._createDevices = function () {
+  this.services.devices = new DevicesManager({
+    storage: this._getStore('devices'),
+    logger: this.logger,
+    platform: this.platform
+  })
+  this.platform.setDevices(this.services.devices)
+}
+
+Runtime.prototype._createTenantService = function () {
+  this.services.tenants = new TenantService({
+    runtime: this,
+    runtimeClass: Runtime,
+    storage: this._getStore('tenants'),
+    secret: this._environment.SECRET,
+    platform: this.platform,
+    logger: this.logger
+  })
+}
+
+Runtime.prototype._createEventsService = function () {
+  this.services.events = new EventsService({
+    logger: this.logger,
+    platform: this.platform
+  })
+}
+
+Runtime.prototype.activateServices = function () {
+  if (_.has(this.services, 'serviceManager')) {
+    _.forEach(this.services, function (object, key) {
+      this.services.serviceManager.activate(key, object)
+    })
+  }
 }
 
 module.exports = Runtime

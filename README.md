@@ -1,4 +1,4 @@
-# mm-dht
+# mm-box
 
 Standalone Node.JS runtime for the [MicroMinion platform](https://github.com/MicroMinion/mm-platform)
 
@@ -26,3 +26,4 @@ node bin/mm-box
 * **SERVICES**: space separated list of services to initialize
 * **PLATFORM_STORE**: URI used for persisting state of core platform
 * **KADEMLIA_STORE**: URI used for persisting state of Kademlia DHT service
+* **SECRET**: Secret string from QR code or other physical identification (used to create new tenants)
