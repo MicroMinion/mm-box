@@ -1,8 +1,7 @@
 {
-  "name": "mm-dht",
+  "name": "mm-box",
   "version": "0.7.6",
-  "description": "Standalone DHT build on top of MicroMinion platform",
-  "main": "index.js",
+  "description": "Node.JS runtime for the MicroMinion platform",
   "keywords": [
     "directory",
     "key",
@@ -11,11 +10,11 @@
     "P2P"
   ],
   "bin": {
-    "mm-dht": "./bin/mm-dht"
+    "mm-box": "./bin/mm-box"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/MicroMinion/mm-dht.git"
+    "url": "git://github.com/MicroMinion/mm-box.git"
   },
   "author": {
     "name": "Thomas Delaet",
@@ -33,14 +32,14 @@
     "inherits": "^2.0.1",
     "kad-fs-thomas": "^0.1.0",
     "kad-memstore-thomas": "^0.1.0",
-    "lodash": "^4.14.1",
     "mkdirp": "^0.5.1",
-    "mm-platform": "^0.3.4",
-    "mm-services-kademlia": "^0.6.1",
-    "mm-services-mdns": "^0.6.2",
     "tweetnacl": "^0.14.3",
     "tweetnacl-util": "^0.13.3",
     "winston": "^2.2.0",
+    "lodash": "^4.14.1",
+    "mm-platform": "^0.3.4",
+    "mm-services-kademlia": "^0.6.1",
+    "mm-services-mdns": "^0.6.2",
     "winston-meta-wrapper": "^1.0.0"
   },
   "devDependencies": {

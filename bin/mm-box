@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+'use strict'
+
+var Runtime = require('../index.js')
+
+var runtime = new Runtime(process.env)
+runtime.createPlatform()

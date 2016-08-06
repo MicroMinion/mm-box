@@ -41,7 +41,7 @@ setTimeout(function () {
       console.log('callback from get for test')
       console.log('ERROR ' + err)
       console.log('RESULT ' + value)
-      process.exit(0)
+    // process.exit(0)
     })
   }, 1000 * 5)
 }, 1000 * 10)

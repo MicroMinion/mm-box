@@ -1,23 +1,28 @@
 # mm-dht
 
-Standalone DHT node built on top of the [MicroMinion platform](https://github.com/MicroMinion/mm-platform)
+Standalone Node.JS runtime for the [MicroMinion platform](https://github.com/MicroMinion/mm-platform)
 
 ## Installation
 
 ```bash
 
-npm install mm-dht
+npm install mm-box
 
 ```
 
 ## Usage
 
 ```bash
-node bin/mm-dht
+node bin/mm-box
 ```
 
 ## Environmental variables
 
-* **STORAGE_DIR**: directory to use for persistent storage
-* **IP_ADDRESS**: IPv4 address to use as endpoint
 * **PORT**: IP port to use for TCP and UDP transports
+* **DEBUG_LEVEL**: Boolean to determine if debug statements should be logged
+* **LOGSTASH**: Boolean to determine whether or not to log in logstash format
+* **IDENTITY**: Base64 encoded private CurveCP key
+* **PERSISTENCE**: Base URI for all persistence (e.g., root dir)
+* **SERVICES**: space separated list of services to initialize
+* **PLATFORM_STORE**: URI used for persisting state of core platform
+* **KADEMLIA_STORE**: URI used for persisting state of Kademlia DHT service

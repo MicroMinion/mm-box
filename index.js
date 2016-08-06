@@ -1,70 +1,149 @@
-'use strict'
-
+var kadfs = require('kad-fs-thomas')
+var path = require('path')
+var mkdirp = require('mkdirp')
+var kadfs = require('kad-fs-thomas')
+var MemStore = require('kad-memstore-thomas')
+var url = require('url')
+var winston = require('winston')
+var winstonWrapper = require('winston-meta-wrapper')
 var Platform = require('mm-platform')
 var MulticastDNS = require('mm-services-mdns')
 var Kademlia = require('mm-services-kademlia')
-var winston = require('winston')
-var MemStore = require('kad-memstore-thomas')
-var winstonWrapper = require('winston-meta-wrapper')
 var _ = require('lodash')
+var Identity = require('./identity.js')
 
-/**
- * Create Standalone DHT node
- */
-function DHT (options) {
+var Runtime = function (environment) {
+  this._environment = environment
+  this.logger = this._getLogger()
+  this.connectionInfo = this._getConnectionInfo()
+  this.identity = this._getIdentity()
+  this.services = {}
+}
+
+/* STORAGE FUNCTIONS */
+
+Runtime.prototype._getStore = function (storeName) {
+  var envName = storeName.toUpperCase() + '_STORE'
+  if (this._environment[envName]) {
+    return createStore(this._environment[envName])
+  } else if (this._environment.PERSISTENCE) {
+    return createStore(this._environment.PERSISTENCE + '/' + storeName)
+  } else {
+    return new MemStore()
+  }
+}
+
+Runtime.prototype._createStore = function (name) {
+  name = url.parse(name)
+  if (name.protocol === 'file:') {
+    mkdirp.sync(name.pathname)
+    return kadfs(name.pathname)
+  } else {
+    throw new Error('Unsupported storage location')
+  }
+}
+
+/* LOGGER */
+
+Runtime.prototype._getLogger = function () {
+  var level = 'info'
+  if (this._environment.DEBUG_LEVEL) {
+    level = 'debug'
+  }
+  var logstash = false
+  if (this._environment.LOGSTASH) {
+    logstash = true
+  }
+  var logger = new winston.Logger({
+    transports: [
+      new winston.transports.Console({
+        level: level,
+        timestamp: true,
+        logstash: logstash
+      })
+    ]
+  })
+  return winstonWrapper(logger)
+}
+
+/* CONNECTION_INFO */
+
+Runtime.prototype._getConnectionInfo = function () {
+  if (this._environment.PORT) {
+    var connectionInfo = [{
+      transportType: 'udp',
+      transportInfo: {
+        port: this._environment.PORT
+      }
+    }, {
+      transportType: 'tcp',
+      transportInfo: {
+        port: this._environment.PORT
+      }
+    }]
+    return connectionInfo
+  }
+}
+/* IDENTITY */
+
+Runtime.prototype._getIdentity = function () {
+  if (this._environment.IDENTITY) {
+    var identity = new Identity(this._environment.IDENTITY)
+    return identity
+  }
+}
+
+/* CREATE PLATFORM */
+
+Runtime.prototype.createPlatform = function () {
   var self = this
-  if (!(this instanceof DHT)) return new DHT()
-  if (!options) {
-    options = {}
-  }
-  if (options.logger) {
-    this._logger = options.logger
-  } else {
-    this._logger = winston
-  }
-  if (_.isUndefined(options.mDNS)) {
-    options.mDNS = true
-  }
-  if (!options.platformStore) {
-    this.platformStore = new MemStore()
-  } else {
-    this.platformStore = options.platformStore
-  }
-  if (!options.dhtStore) {
-    this.dhtStore = new MemStore()
-  } else {
-    this.dhtStore = options.dhtStore
-  }
-  this.platform = new Platform({
-    storage: this.platformStore,
-    connectionInfo: options.connectionInfo,
-    logger: winstonWrapper(this._logger),
-    identity: options.identity
+  var platform = new Platform({
+    storage: this._getStore('platform'),
+    connectionInfo: this.connectionInfo,
+    logger: this.logger,
+    identity: this.identity
   })
-  this.platform.on('ready', function () {
-    self._logger = winstonWrapper(self._logger)
-    self._logger.addMeta({
-      node: self.platform.identity.getSignId()
+  platform.on('ready', function () {
+    platform._log.addMeta({
+      node: platform.identity.getSignId()
     })
-    self._initializeServices(options.mDNS)
+    self._createServices()
   })
+  if (this.identity) {
+    this.identity.setPlatform(platform)
+  }
+  this.platform = platform
 }
 
-DHT.prototype.start = function () {}
+/* CREATE SERVICES */
 
-DHT.prototype._initializeServices = function (mDNS) {
-  if (mDNS) {
-    this.mdns = new MulticastDNS({
-      platform: this.platform,
-      logger: this._logger
-    })
+Runtime.prototype._createServices = function () {
+  if (!this._environment.SERVICES) {
+    this.logger.warn('No services defined')
+    return
   }
-  this.dht = new Kademlia({
+  var services = this._environment.SERVICES.split(' ')
+  if (_.has(services, 'mdns')) {
+    this._createmDNS()
+  }
+  if (_.has(services, 'kademlia')) {
+    this._createKademlia()
+  }
+}
+
+Runtime.prototype._createmDNS = function () {
+  this.services.mdns = new MulticastDNS({
     platform: this.platform,
-    storage: this.dhtStore,
-    logger: this._logger,
-    seeds: null
+    logger: this.logger
   })
 }
 
-module.exports = DHT
+Runtime.prototype._createKademlia = function (platform) {
+  this.services.kademlia = new Kademlia({
+    platform: this.platform,
+    storage: this._getStore('kademlia'),
+    logger: this.logger
+  })
+}
+
+module.exports = Runtime
