@@ -1,8 +1,8 @@
 #!/bin/bash
 
 WHAT_AM_I=$(uname -m)
-IMAGE_RPI='mm/rpi2-mm-dht'
-IMAGE_x86='mm/mm-dht'
+IMAGE_RPI='microminion/rpi2-mm-dht'
+IMAGE_x86='microminion/mm-dht'
 
 # Exit upon errors
 set -e
