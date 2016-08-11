@@ -20,6 +20,7 @@ node bin/mm-box
 
 * **PORT**: IP port to use for TCP and UDP transports
 * **DEBUG_LEVEL**: Boolean to determine if debug statements should be logged
+* **LOG_CONTEXT**: Add context info to logs so that logs from multiple devices can be easily aggregated (adds nodeId as metadata to each log line which is base64 encoded version of public key used for encryption)
 * **LOGSTASH**: Boolean to determine whether or not to log in logstash format
 * **IDENTITY**: Base64 encoded private CurveCP key
 * **PERSISTENCE**: Base URI for all persistence (e.g., root dir)

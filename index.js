@@ -118,9 +118,11 @@ Runtime.prototype.createPlatform = function () {
   })
   this.platform = platform
   platform.on('ready', function () {
-    platform._log.addMeta({
-      node: platform.identity.getSignId()
-    })
+    if (process.env.LOG_CONTEXT) {
+      self.logger.addMeta({
+        node: platform.identity.getBoxId()
+      })
+    }
     self._createServices()
   })
   if (this.identity) {
