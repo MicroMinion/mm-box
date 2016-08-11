@@ -1,8 +1,8 @@
 #!/bin/bash
 
 WHAT_AM_I=$(uname -m)
-IMAGE_RPI='mm/rpi-dht'
-IMAGE_x86='mm/dht'
+IMAGE_RPI='mm/rpi2-mm-dht'
+IMAGE_x86='mm/mm-dht'
 
 # Exit upon errors
 set -e
@@ -32,13 +32,13 @@ function build {
 
 function build4rpi {
   log_info "Building docker container to run kad server on rpi"
-  docker build -t ${IMAGE_RPI} -f build/Dockerfile.rpi .
+  docker build -t ${IMAGE_RPI} -f ./Dockerfile.dht.rpi2 .
   log_info "Done"
 }
 
 function build4x86 {
   log_info "Building docker container to run kad server on x86"
-  docker build -t ${IMAGE_x86} -f build/Dockerfile.x86 .
+  docker build -t ${IMAGE_x86} -f ./Dockerfile.dht.x86 .
   log_info "Done"
 }
 

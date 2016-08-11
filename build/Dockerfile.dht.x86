@@ -1,0 +1,10 @@
+FROM mhart/alpine-node:4.4.7
+
+MAINTAINER Thomas Delaet <thomas@delaet.org>
+
+LABEL version="0.7.8"
+
+RUN npm install -g mm-box@0.7.8
+
+ENV SERVICES kademlia mdns
+ENTRYPOINT ["mm-box"]
