@@ -213,16 +213,17 @@ Runtime.prototype._createTenantService = function () {
 }
 
 Runtime.prototype._createEventsService = function () {
-  this.services.events = new EventsService({
+  this.services.events = new Events({
     logger: this.logger,
     platform: this.platform
   })
 }
 
 Runtime.prototype.activateServices = function () {
+  var self = this
   if (_.has(this.services, 'serviceManager')) {
     _.forEach(this.services, function (object, key) {
-      this.services.serviceManager.activate(key, object)
+      self.services.serviceManager.activate(key)
     })
   }
 }
