@@ -144,6 +144,10 @@ Runtime.prototype._createServices = function () {
   })
 }
 
+Runtime.prototype.hasService = function (serviceName) {
+  return _.has(this.services, serviceName)
+}
+
 Runtime.prototype.createService = function (serviceName) {
   var factoryFunctions = {
     'mdns': this._createmDNS,
@@ -155,7 +159,9 @@ Runtime.prototype.createService = function (serviceName) {
     'events': this._createEventsService
   }
   if (_.has(factoryFunctions, serviceName)) {
-    factoryFunctions[serviceName].call(this)
+    if (!this.hasService(serviceName)) {
+      factoryFunctions[serviceName].call(this)
+    }
     return true
   }
   return false
