@@ -70,7 +70,7 @@ Runtime.prototype._getPouchStore = function (storeName) {
   if (uri) {
     return this._createPouchStore(uri)
   } else {
-    return new PouchDB(name, {
+    return new PouchDB(storeName, {
       db: require('memdown')
     })
   }
