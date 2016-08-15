@@ -13,6 +13,7 @@ var ServiceManager = require('mm-services-manager')
 var TenantService = require('mm-services-tenant')
 var Flukso = require('mm-services-flukso')
 var DevicesManager = require('mm-services-devices')
+var StatusManager = require('mm-services-online')
 var Events = require('mm-services-events')
 var PouchDB = require('pouchdb')
 var memdown = require('memdown')
@@ -186,7 +187,8 @@ Runtime.prototype.createService = function (serviceName) {
     'devices': this._createDevices,
     'serviceManager': this._createServiceManager,
     'tenants': this._createTenantService,
-    'events': this._createEventsService
+    'events': this._createEventsService,
+    'status': this._createStatusManager
   }
   if (_.has(factoryFunctions, serviceName)) {
     if (!this.hasService(serviceName)) {
@@ -223,6 +225,13 @@ Runtime.prototype._createServiceManager = function () {
 
 Runtime.prototype._createFlukso = function () {
   this.services.flukso = new Flukso({
+    logger: this.logger,
+    platform: this.platform
+  })
+}
+
+Runtime.prototype._createStatusManager = function () {
+  this.services.status = new StatusManager({
     logger: this.logger,
     platform: this.platform
   })
