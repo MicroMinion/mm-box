@@ -1,6 +1,6 @@
 {
   "name": "mm-box",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Node.JS runtime for the MicroMinion platform",
   "keywords": [
     "directory",
@@ -28,29 +28,30 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "ed2curve": "^0.1.4",
-    "inherits": "^2.0.1",
-    "kad-fs-thomas": "^0.1.0",
-    "kad-memstore-thomas": "^0.1.0",
-    "lodash": "^4.14.1",
-    "memdown": "^1.2.0",
-    "mkdirp": "^0.5.1",
-    "mm-platform": "^0.4.4",
-    "mm-services-devices": "0.0.4",
+    "ed2curve": "0.1.4",
+    "inherits": "2.0.1",
+    "kad-fs-thomas": "0.1.0",
+    "kad-memstore-thomas": "0.1.0",
+    "lodash": "4.15.0",
+    "memdown": "1.2.0",
+    "mkdirp": "0.5.1",
+    "mm-platform": "0.4.7",
+    "mm-services-devices": "0.0.5",
     "mm-services-events": "0.0.3",
     "mm-services-flukso": "0.0.2",
-    "mm-services-kademlia": "^0.6.5",
+    "mm-services-kademlia": "0.6.5",
     "mm-services-manager": "0.0.2",
-    "mm-services-mdns": "^0.6.3",
+    "mm-services-mdns": "0.6.3",
+    "mm-services-online": "0.0.2",
     "mm-services-tenant": "0.0.4",
-    "pouchdb": "^5.4.5",
-    "tweetnacl": "^0.14.3",
-    "tweetnacl-util": "^0.13.3",
-    "winston": "^2.2.0",
-    "winston-meta-wrapper": "^1.1.0"
+    "pouchdb": "5.4.5",
+    "tweetnacl": "0.14.3",
+    "tweetnacl-util": "0.13.3",
+    "winston": "2.2.0",
+    "winston-meta-wrapper": "1.1.0"
   },
   "devDependencies": {
-    "publish": "^0.6.0"
+    "publish": "0.6.0"
   },
   "scripts": {
     "test": "echo",
