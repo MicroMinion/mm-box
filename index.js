@@ -14,6 +14,8 @@ var TenantService = require('mm-services-tenant')
 var Flukso = require('mm-services-flukso')
 var DevicesManager = require('mm-services-devices')
 var Events = require('mm-services-events')
+var PouchDB = require('pouchdb')
+var memdown = require('memdown')
 
 var Identity = require('./identity.js')
 
@@ -35,22 +37,50 @@ Runtime.prototype.appendToPersistence = function (suffix) {
   return this._environment.PERSISTENCE + '/' + suffix
 }
 
-Runtime.prototype._getStore = function (storeName) {
-  var envName = storeName.toUpperCase() + '_STORE'
-  if (this._environment[envName]) {
-    return this._createStore(this._environment[envName])
-  } else if (this._environment.PERSISTENCE) {
-    return this._createStore(this._environment.PERSISTENCE + '/' + storeName)
+Runtime.prototype._getKadStore = function (storeName) {
+  var uri = this._getStoreURI(storeName)
+  if (uri) {
+    return this._createKadStore(uri)
   } else {
     return new MemStore()
   }
 }
 
-Runtime.prototype._createStore = function (name) {
+Runtime.prototype._getStoreURI = function (storeName) {
+  var envName = storeName.toUpperCase() + '_STORE'
+  if (this._environment[envName]) {
+    return this._environment[envName]
+  } else if (this._environment.PERSISTENCE) {
+    return this._environment.PERSISTENCE + '/' + storeName
+  }
+}
+
+Runtime.prototype._createKadStore = function (name) {
   name = url.parse(name)
   if (name.protocol === 'file:') {
     mkdirp.sync(name.pathname)
     return kadfs(name.pathname)
+  } else {
+    throw new Error('Unsupported storage location')
+  }
+}
+
+Runtime.prototype._getPouchStore = function (storeName) {
+  var uri = this._getStoreURI(storeName)
+  if (uri) {
+    return this._createPouchStore(uri)
+  } else {
+    return new PouchDB(name, {
+      db: require('memdown')
+    })
+  }
+}
+
+Runtime.prototype._createPouchStore = function (uri) {
+  var name = url.parse(uri)
+  if (name.protocol === 'file:') {
+    mkdirp.sync(name.pathname)
+    return new PouchDB(name.pathname)
   } else {
     throw new Error('Unsupported storage location')
   }
@@ -111,7 +141,7 @@ Runtime.prototype._getIdentity = function () {
 Runtime.prototype.createPlatform = function () {
   var self = this
   var platform = new Platform({
-    storage: this._getStore('platform'),
+    storage: this._getKadStore('platform'),
     connectionInfo: this.connectionInfo,
     logger: this.logger,
     identity: this.identity
@@ -177,7 +207,7 @@ Runtime.prototype._createmDNS = function () {
 Runtime.prototype._createKademlia = function () {
   this.services.kademlia = new Kademlia({
     platform: this.platform,
-    storage: this._getStore('kademlia'),
+    storage: this._getKadStore('kademlia'),
     logger: this.logger
   })
 }
@@ -187,7 +217,7 @@ Runtime.prototype._createServiceManager = function () {
     platform: this.platform,
     logger: this.logger,
     runtime: this,
-    storage: this._getStore('serviceManager')
+    storage: this._getKadStore('serviceManager')
   })
 }
 
@@ -200,18 +230,17 @@ Runtime.prototype._createFlukso = function () {
 
 Runtime.prototype._createDevices = function () {
   this.services.devices = new DevicesManager({
-    storage: this._getStore('devices'),
+    storage: this._getPouchStore('devices'),
     logger: this.logger,
     platform: this.platform
   })
-  this.platform.setDevices(this.services.devices)
 }
 
 Runtime.prototype._createTenantService = function () {
   this.services.tenants = new TenantService({
     runtime: this,
     runtimeClass: Runtime,
-    storage: this._getStore('tenants'),
+    storage: this._getKadStore('tenants'),
     secret: this._environment.SECRET,
     platform: this.platform,
     logger: this.logger
