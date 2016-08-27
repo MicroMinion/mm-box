@@ -210,6 +210,8 @@ Runtime.prototype._createKademlia = function () {
   this.services.kademlia = new Kademlia({
     platform: this.platform,
     storage: this._getKadStore('kademlia'),
+    directoryStorage: this._getKadStore('directory'),
+    telemetryStorage: this._getKadStore('kademlia-telemetry'),
     logger: this.logger
   })
 }
