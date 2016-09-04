@@ -212,7 +212,8 @@ Runtime.prototype._createKademlia = function () {
     storage: this._getKadStore('kademlia'),
     directoryStorage: this._getKadStore('directory'),
     telemetryStorage: this._getKadStore('kademlia-telemetry'),
-    logger: this.logger
+    logger: this.logger,
+    seeds: []
   })
 }
 
