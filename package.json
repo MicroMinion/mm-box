@@ -1,6 +1,6 @@
 {
   "name": "mm-box",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Node.JS runtime for the MicroMinion platform",
   "keywords": [
     "directory",
@@ -51,7 +51,10 @@
     "winston-meta-wrapper": "1.1.0"
   },
   "devDependencies": {
-    "publish": "0.6.0"
+    "mm-create-identity": "1.2.2",
+    "publish": "0.6.0",
+    "tweetnacl": "0.14.3",
+    "tweetnacl-util": "0.13.3"
   },
   "scripts": {
     "test": "echo",
