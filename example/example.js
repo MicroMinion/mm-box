@@ -10,7 +10,7 @@ var createPeer = function (name) {
       SERVICES: "mdns kademlia",
       LOG_CONTEXT: true,
       DEBUG_LEVEL: 0,
-      LOGSTASH: true
+      LOGSTASH: false
     })
     dht.createPlatform()
     peers[name] = dht
