@@ -1,4 +1,3 @@
-
 var util = require('mm-create-identity')
 var ed2curve = require('ed2curve')
 var nacl = require('tweetnacl')
@@ -9,6 +8,8 @@ console.log('')
 
 var identity = util.createIdentity()
 var secret = util.createSecret()
+var sign = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(identity))
+var publicKey = nacl.util.encodeBase64(ed2curve.convertKeyPair(sign).publicKey)
 
 console.log('export SERVICES="mdns kademlia tenants"')
 console.log('export IDENTITY="' + identity + '"')
@@ -22,15 +23,12 @@ console.log('')
 
 console.log('QR CODE IN qr.png file')
 
-util.createQrImageWithSecret(identity, secret, 'qr.png')
+util.createQrImageWithSecret(publicKey, secret, 'qr.png')
 console.log('')
 console.log('----------------------------')
 console.log('CLIENT ENVIRONMENT VARIABLES')
 console.log('')
 console.log('export SERVER_SECRET="' + secret + '"')
-
-var sign = nacl.sign.keyPair.fromSecretKey(nacl.util.decodeBase64(identity))
-var publicKey = nacl.util.encodeBase64(ed2curve.convertKeyPair(sign).publicKey)
 
 console.log('export SERVER_KEY="' + publicKey + '"')
 
