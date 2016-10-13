@@ -41,7 +41,7 @@
     "mm-services-flukso": "0.0.3",
     "mm-services-kademlia": "0.8.6",
     "mm-services-manager": "0.0.3",
-    "mm-services-mdns": "0.6.3",
+    "mm-services-mdns": "^0.6.3",
     "mm-services-status": "0.0.2",
     "mm-services-tenant": "0.0.4",
     "pouchdb": "6.0.5",
