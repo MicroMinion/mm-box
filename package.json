@@ -1,6 +1,6 @@
 {
   "name": "mm-box",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Node.JS runtime for the MicroMinion platform",
   "keywords": [
     "directory",
