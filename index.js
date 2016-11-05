@@ -17,6 +17,7 @@ var StatusManager = require('mm-services-status')
 var Events = require('mm-services-events')
 var PouchDB = require('pouchdb')
 var memdown = require('memdown')
+var debug = require('winston-debug')
 
 var Identity = require('./identity.js')
 
@@ -90,6 +91,9 @@ Runtime.prototype._createPouchStore = function (uri) {
 /* LOGGER */
 
 Runtime.prototype._getLogger = function () {
+  if (this._environment.DEV) {
+    return winstonWrapper(debug)
+  }
   var level = 'info'
   if (this._environment.DEBUG_LEVEL) {
     level = 'debug'
