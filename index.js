@@ -35,6 +35,10 @@ Runtime.prototype._hasPersistence = function () {
   return _.has(this._environment, 'PERSISTENCE')
 }
 
+Runtime.prototype.isDev = function () {
+  return _.has(this._environment, 'DEV')
+}
+
 Runtime.prototype.appendToPersistence = function (suffix) {
   return this._environment.PERSISTENCE + '/' + suffix
 }
